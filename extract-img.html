@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMZ Image Extractor - SND App</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
+
+    <style>
+        /* === TEMA & VARIABEL (Konsisten) === */
+        :root {
+            --bg-color: #ffffff;
+            --container-color: #f8fafc;
+            --log-bg: #f1f5f9;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --primary-color: #2563eb;
+            --primary-text: #ffffff;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+            --warn-color: #d97706;
+            --drag-active: #eff6ff;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #020817;
+            --container-color: #0f172a;
+            --log-bg: #020817;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --primary-color: #3b82f6;
+            --primary-text: #ffffff;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --warn-color: #f59e0b;
+            --drag-active: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: var(--container-color);
+            color: var(--text-color);
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .version-badge {
+            font-size: 0.75rem;
+            background: var(--container-color);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--container-color);
+        }
+
+        [data-theme="dark"] .icon-sun {
+            display: none;
+        }
+
+        [data-theme="light"] .icon-moon {
+            display: none;
+        }
+
+        /* Body Layout */
+        .app-body {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex-basis: 70%;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .log-container {
+            flex-basis: 30%;
+            border-left: 1px solid var(--border-color);
+            background-color: var(--container-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Content Styling */
+        .main-content h1 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .main-content p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Range Slider */
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        /* Drag & Drop */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--container-color);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+        }
+
+        .upload-zone.active {
+            border-color: var(--primary-color);
+            background-color: var(--drag-active);
+        }
+
+        .upload-zone p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .upload-icon {
+            width: 54px;
+            height: 54px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        #kmzFile {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #fileNameDisplay {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 0.8rem;
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.9rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: var(--text-muted);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        /* Log */
+        .log-title-bar {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        #log {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            background-color: var(--log-bg);
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .l-info {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .l-warn {
+            color: var(--warn-color);
+        }
+
+        .l-err {
+            color: var(--error-color);
+        }
+
+        .l-success {
+            color: var(--success-color);
+        }
+
+        .l-head {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        /* Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .processing .spinner {
+            display: block;
+        }
+
+        .processing span {
+            display: none;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .modal-body ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1000px) {
+            .app-body {
+                flex-direction: column;
+            }
+
+            .main-content {
+                flex-basis: auto;
+                height: 50%;
+            }
+
+            .log-container {
+                height: 50%;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <a href="index.html" class="back-btn">← Kembali</a>
+                <h1>Image Extractor <span class="version-badge" onclick="openModal()">v3.0</span></h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="themeToggle">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <main class="main-content">
+                <h1>Ekstrak Foto dari KMZ</h1>
+                <p>Alat ini akan mengekstrak foto, mengonversi ke JPEG, menyematkan GPS (Geotagging), dan
+                    <strong>membuat catatan .txt</strong> jika foto tidak ditemukan di placemark.
+                </p>
+
+                <div class="form-group">
+                    <label>
+                        <span>Kualitas Kompresi JPEG</span>
+                        <span id="qualityValue" style="color: var(--primary-color); font-weight:700;">0.9
+                            (Tinggi)</span>
+                    </label>
+                    <input type="range" id="jpegQuality" min="0.1" max="1.0" step="0.05" value="0.9">
+                </div>
+
+                <div class="upload-zone" id="dropZone">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p>Klik atau Seret File KMZ ke sini</p>
+                    <span id="fileNameDisplay"></span>
+                    <input type="file" id="kmzFile" accept=".kmz">
+                </div>
+
+                <div class="action-buttons">
+                    <button id="processBtn" class="btn btn-primary" disabled>
+                        <div class="spinner"></div>
+                        <span>Proses Ekstraksi</span>
+                    </button>
+                    <a id="downloadLink" class="btn btn-secondary" style="display: none;">Download ZIP</a>
+                </div>
+            </main>
+
+            <aside class="log-container">
+                <div class="log-title-bar">Log Aktivitas</div>
+                <div id="log"></div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="modal" id="changelogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Changelog</h3><button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><strong>v3.0 (New):</strong> Error handling canggih. Jika foto tidak ada, sistem membuat file
+                        .txt (misal: Tiang_A_no_photo.txt) sebagai laporan.</li>
+                    <li><strong>v2.5:</strong> Fitur Anti-Duplikat & UI Baru.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">by FadliGr</div>
+
+    <script>
+        // === UI VARIABLES ===
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('kmzFile');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const processBtn = document.getElementById('processBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        const logEl = document.getElementById('log');
+        const qualitySlider = document.getElementById('jpegQuality');
+        const qualityValueLabel = document.getElementById('qualityValue');
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const rootHtml = document.documentElement;
+
+        let originalKmzFile = null;
+
+        // === 1. THEME & UI LOGIC ===
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        rootHtml.dataset.theme = savedTheme;
+
+        themeToggleBtn.addEventListener('click', () => {
+            const next = rootHtml.dataset.theme === 'dark' ? 'light' : 'dark';
+            rootHtml.dataset.theme = next;
+            localStorage.setItem('theme', next);
+        });
+
+        qualitySlider.addEventListener('input', () => {
+            const val = parseFloat(qualitySlider.value);
+            let label = val <= 0.3 ? "Rendah" : val <= 0.7 ? "Sedang" : val <= 0.9 ? "Tinggi" : "Maksimal";
+            qualityValueLabel.textContent = `${val.toFixed(2)} (${label})`;
+        });
+
+        function openModal() { document.getElementById('changelogModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('changelogModal').style.display = 'none'; }
+        window.onclick = e => { if (e.target == document.getElementById('changelogModal')) closeModal(); };
+
+        // === 2. DRAG & DROP ===
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+        function handleFile(file) {
+            if (file.name.endsWith('.kmz')) {
+                originalKmzFile = file;
+                fileNameDisplay.textContent = file.name;
+                processBtn.disabled = false;
+                downloadLink.style.display = 'none';
+                logEl.innerHTML = '';
+                log('l-info', `File siap: ${file.name}`);
+            } else {
+                alert("Harap upload file .kmz");
+            }
+        }
+
+        processBtn.addEventListener('click', handleFileProcess);
+
+        // === 3. LOGGING UTILS ===
+        function log(cls, msg) {
+            const d = document.createElement('div'); d.className = `log-entry ${cls}`;
+            d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+        }
+        function logHeader(msg) {
+            const d = document.createElement('div'); d.className = 'l-head'; d.textContent = msg;
+            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // === 4. EXIF HELPERS ===
+        function degToDms(deg) {
+            var d = Math.floor(deg);
+            var m = Math.floor((deg - d) * 60);
+            var s = Math.round((deg - d - m / 60) * 3600 * 100);
+            return [[d, 1], [m, 1], [s, 100]];
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function base64ToBlob(base64) {
+            const parts = base64.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const uInt8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) uInt8Array[i] = raw.charCodeAt(i);
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        function convertImageToJpeg(imageBlob, quality) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(imageBlob);
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.fillStyle = "#FFFFFF"; // Background putih (untuk PNG transparan)
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((jpegBlob) => {
+                        URL.revokeObjectURL(url);
+                        if (jpegBlob) resolve(jpegBlob);
+                        else reject(new Error("Gagal konversi JPEG"));
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Gambar korup/gagal load")); };
+                img.src = url;
+            });
+        }
+
+        // === 5. MAIN PROCESS ===
+        async function handleFileProcess() {
+            logHeader("Memulai Ekstraksi Foto...");
+            processBtn.classList.add('processing');
+            processBtn.disabled = true;
+            downloadLink.style.display = 'none';
+
+            const jpegQuality = parseFloat(qualitySlider.value);
+            const fileNameTracker = {};
+
+            try {
+                log('l-info', "Membaca file KMZ...");
+                const inputZip = new JSZip();
+                const loadedZip = await inputZip.loadAsync(originalKmzFile);
+                const outputZip = new JSZip();
+
+                let kmlFile = loadedZip.file("doc.kml") || loadedZip.file(/.kml$/i)[0];
+                if (!kmlFile) throw new Error("Tidak ada file .kml dalam KMZ.");
+
+                const kmlText = await kmlFile.async("string");
+                const parser = new DOMParser();
+                const kmlDoc = parser.parseFromString(kmlText, "application/xml");
+                const placemarks = kmlDoc.getElementsByTagName("Placemark");
+
+                log('l-info', `Ditemukan ${placemarks.length} placemark. Mulai scanning...`);
+
+                let count = 0, success = 0, errors = 0;
+
+                for (let i = 0; i < placemarks.length; i++) {
+                    count++;
+                    const pm = placemarks[i];
+                    const nameEl = pm.getElementsByTagName("name")[0];
+                    if (!nameEl) continue;
+
+                    let pmName = nameEl.textContent.trim().replace(/[\\/:*?"<>|]/g, "_");
+
+                    // --- Logic Duplicate Name Check ---
+                    if (fileNameTracker[pmName]) {
+                        fileNameTracker[pmName]++;
+                        pmName = `${pmName} (${fileNameTracker[pmName]})`;
+                    } else {
+                        fileNameTracker[pmName] = 0;
+                    }
+                    // ----------------------------------
+
+                    // Cek Koordinat
+                    const pt = pm.getElementsByTagName("Point")[0];
+                    const coordEl = pt ? pt.getElementsByTagName("coordinates")[0] : null;
+                    let coords = null;
+                    if (coordEl) {
+                        const parts = coordEl.textContent.trim().split(',');
+                        if (parts.length >= 2) coords = { lat: parseFloat(parts[1]), lon: parseFloat(parts[0]) };
+                    }
+
+                    // --- Cek Deskripsi ---
+                    const descEl = pm.getElementsByTagName("description")[0];
+                    if (!descEl) {
+                        log('l-warn', `[${count}] ${pmName}: Tidak ada deskripsi. Buat TXT.`);
+                        outputZip.file(`${pmName}_no_photo.txt`, "Tidak ada tag <description>.");
+                        errors++;
+                        continue;
+                    }
+
+                    const descDoc = parser.parseFromString(descEl.textContent, "text/html");
+                    const imgEl = descDoc.querySelector("img");
+
+                    if (!imgEl) {
+                        log('l-warn', `[${count}] ${pmName}: Tidak ada <img>. Buat TXT.`);
+                        outputZip.file(`${pmName}_no_photo.txt`, "Tidak ada tag <img> di deskripsi.");
+                        errors++;
+                        continue;
+                    }
+
+                    let imgSrc = imgEl.getAttribute("src");
+                    if (!imgSrc) {
+                        outputZip.file(`${pmName}_no_photo.txt`, "Tag <img> ada, tapi atribut src kosong.");
+                        errors++;
+                        continue;
+                    }
+
+                    // Normalisasi path (ganti backslash windows ke forward slash)
+                    imgSrc = imgSrc.replace(/\\/g, "/");
+                    const imgFile = loadedZip.file(imgSrc);
+
+                    if (imgFile) {
+                        log('l-info', `[${count}] Proses: ${pmName}.jpg`);
+                        let imgBlob = await imgFile.async("blob");
+
+                        try {
+                            // 1. Convert ke JPEG
+                            imgBlob = await convertImageToJpeg(imgBlob, jpegQuality);
+
+                            // 2. Inject GPS jika ada
+                            if (coords) {
+                                const base64 = await blobToBase64(imgBlob);
+                                const gps = {};
+                                gps[piexif.GPSIFD.GPSLatitudeRef] = coords.lat < 0 ? 'S' : 'N';
+                                gps[piexif.GPSIFD.GPSLatitude] = degToDms(Math.abs(coords.lat));
+                                gps[piexif.GPSIFD.GPSLongitudeRef] = coords.lon < 0 ? 'W' : 'E';
+                                gps[piexif.GPSIFD.GPSLongitude] = degToDms(Math.abs(coords.lon));
+
+                                const exifBytes = piexif.dump({ "GPS": gps });
+                                const newBase64 = piexif.insert(exifBytes, base64);
+                                imgBlob = base64ToBlob(newBase64);
+                            }
+
+                            outputZip.file(`${pmName}.jpg`, imgBlob);
+                            success++;
+
+                        } catch (err) {
+                            log('l-err', `Gagal proses ${pmName}: ${err.message}`);
+                            outputZip.file(`${pmName}_error.jpg`, await imgFile.async("blob")); // Simpan asli jika gagal
+                        }
+                    } else {
+                        log('l-err', `[${count}] ${pmName}: File ${imgSrc} tidak ditemukan di KMZ.`);
+                        outputZip.file(`${pmName}_no_photo.txt`, `File gambar '${imgSrc}' tidak ditemukan di dalam arsip KMZ.`);
+                        errors++;
+                    }
+                }
+
+                if (success === 0 && errors === 0) throw new Error("Tidak ada data yang diproses.");
+
+                log('l-info', "Mengompres output ZIP...");
+                const outBlob = await outputZip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(outBlob);
+
+                downloadLink.href = url;
+                downloadLink.download = `Extracted_Photos_${originalKmzFile.name.replace(/\.[^/.]+$/, "")}.zip`;
+                downloadLink.style.display = 'flex';
+
+                logHeader("SELESAI");
+                log('l-success', `Sukses: ${success} foto.`);
+                log('l-warn', `Tidak ditemukan/Error: ${errors} file.`);
+
+            } catch (error) {
+                log('l-err', error.message);
+                console.error(error);
+            } finally {
+                processBtn.classList.remove('processing');
+                processBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

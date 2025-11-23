@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hubungi Kami - SND App</title>
+    <style>
+        /* === TEMA === */
+        :root {
+            --bg-color: #ffffff;
+            --container-color: #f8fafc;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --card-bg: #ffffff;
+            --accent-bg: #f1f5f9;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #020817;
+            --container-color: #0f172a;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --border-color: #1e293b;
+            --input-bg: #1e293b;
+            --card-bg: #0f172a;
+            --accent-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Animasi Fade In */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: rgba(var(--bg-color), 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 50;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .logo span {
+            color: var(--primary-color);
+        }
+
+        .nav-links a {
+            margin-left: 1.5rem;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Grid Layout for Contact */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        /* Left Side: Info */
+        .contact-info h1 {
+            font-size: 3rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .contact-info p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: var(--accent-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .email-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .email-box:hover p {
+            color: var(--primary-color);
+        }
+
+        .copy-icon {
+            opacity: 0.5;
+            transition: 0.2s;
+        }
+
+        .email-box:hover .copy-icon {
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Socials Mini */
+        .social-mini {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .social-icon:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .social-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Right Side: Form */
+        .contact-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: 2px solid var(--primary-color);
+            border-color: transparent;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #1ebd5b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-top: 5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .faq-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        details {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: var(--card-bg);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+            list-style: none;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '+';
+            position: absolute;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+        details[open] summary::after {
+            content: '-';
+        }
+
+        details[open] summary {
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
+        }
+
+        .faq-content {
+            padding: 1.5rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            margin-top: 5rem;
+        }
+
+        @media (max-width: 900px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .contact-info h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="logo">SND<span>App</span></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="contact.html" class="active">Contact</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="contact-grid animate-up">
+            <div class="contact-info">
+                <h1>Let's Build <br><span style="color: var(--primary-color);">Something Great.</span></h1>
+                <p>Punya ide liar untuk fitur baru? Menemukan bug yang mengganggu? Atau sekadar ingin diskusi soal FTTH?
+                    Kami siap mendengarkan.</p>
+
+                <div class="info-card">
+                    <h3>📧 Email Support</h3>
+                    <div class="email-box" onclick="copyEmail()">
+                        <p id="emailText">fadligr.dev@gmail.com</p>
+                        <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>📍 Basecamp</h3>
+                    <p>Medan, Sumatera Utara, ID</p>
+                </div>
+
+                <div class="social-mini">
+                    <a href="https://instagram.com/padliigrr" target="_blank" class="social-icon" title="Instagram">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/FadliGr1" target="_blank" class="social-icon" title="GitHub">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                            </path>
+                        </svg>
+                    </a>
+                    <a href="https://linkedin.com/in/fadligr" target="_blank" class="social-icon" title="LinkedIn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                            </path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="contact-card">
+                <div class="form-group">
+                    <label>Nama Kamu</label>
+                    <input type="text" id="name" placeholder="Cth: Engineer Santuy">
+                </div>
+                <div class="form-group">
+                    <label>Topik Pembicaraan</label>
+                    <select id="category">
+                        <option value="Saran Fitur">💡 Request Fitur Baru</option>
+                        <option value="Lapor Bug">🐛 Lapor Bug / Error</option>
+                        <option value="Kerjasama">🤝 Project Collaboration</option>
+                        <option value="Tanya Teknis">🔧 Pertanyaan Teknis</option>
+                        <option value="Lainnya">👋 Sekadar Menyapa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Detail Pesan</label>
+                    <textarea id="message" rows="5" placeholder="Ceritakan detailnya di sini..."></textarea>
+                </div>
+                <button class="btn-submit" onclick="sendToWA()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z" />
+                    </svg>
+                    Chat via WhatsApp
+                </button>
+            </div>
+        </div>
+
+        <div class="faq-section animate-up" style="animation-delay: 0.2s;">
+            <h2 class="faq-title">Pertanyaan Sering Diajukan</h2>
+
+            <details>
+                <summary>Apakah SND App gratis?</summary>
+                <div class="faq-content">
+                    Yap! Saat ini semua tools di SND App gratis digunakan untuk komunitas Engineer dan Drafter FTTH
+                    Indonesia.
+                </div>
+            </details>
+
+            <details>
+                <summary>Data saya aman gak?</summary>
+                <div class="faq-content">
+                    Sangat aman. SND App memproses data <strong>sepenuhnya di browser Anda (Client-Side)</strong>. File
+                    KMZ/Excel Anda tidak pernah diunggah ke server mana pun.
+                </div>
+            </details>
+
+            <details>
+                <summary>Bagaimana cara request fitur custom?</summary>
+                <div class="faq-content">
+                    Silakan gunakan form di atas dan pilih kategori "Request Fitur Baru". Jelaskan kebutuhan Anda
+                    sedetail mungkin (screenshot atau contoh file sangat membantu).
+                </div>
+            </details>
+
+            <details>
+                <summary>Support format apa saja?</summary>
+                <div class="faq-content">
+                    Fokus utama kami adalah format .KML dan .KMZ (Google Earth). Output yang dihasilkan bervariasi mulai
+                    dari CSV, Excel, hingga GeoJSON.
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div id="toast">Email berhasil disalin!</div>
+
+    <footer>
+        <p>&copy; 2025 SND App. Developed by <strong>FadliGr</strong>.</p>
+    </footer>
+
+    <script>
+        // Theme Init
+        document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+
+        function sendToWA() {
+            const name = document.getElementById('name').value.trim();
+            const category = document.getElementById('category').value;
+            const message = document.getElementById('message').value.trim();
+
+            if (!name || !message) {
+                alert("Harap isi Nama dan Pesan terlebih dahulu!");
+                return;
+            }
+
+            const text = `Halo FadliGr, saya *${name}*.\n\nTopik: *${category}*\n\nPesan:\n${message}\n\n_(Dikirim via sndapp.com)_`;
+            const url = `https://wa.me/6287744370328?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function copyEmail() {
+            const email = document.getElementById("emailText").innerText;
+            navigator.clipboard.writeText(email);
+
+            // Show Toast
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function () { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+    </script>
+</body>
+
+</html>

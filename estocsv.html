@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadata Extractor - SND App</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        /* === TEMA & VARIABEL === */
+        :root {
+            --bg-color: #ffffff;
+            --container-color: #f8fafc;
+            --log-bg: #f1f5f9;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --primary-color: #2563eb;
+            --primary-text: #ffffff;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+            --warn-color: #d97706;
+            --drag-active: #eff6ff;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #020817;
+            --container-color: #0f172a;
+            --log-bg: #020817;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --primary-color: #3b82f6;
+            --primary-text: #ffffff;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --warn-color: #f59e0b;
+            --drag-active: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: var(--container-color);
+            color: var(--text-color);
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Version Badge (Clickable) */
+        .version-badge {
+            font-size: 0.75rem;
+            background: var(--container-color);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .version-badge:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--container-color);
+        }
+
+        [data-theme="dark"] .icon-sun {
+            display: none;
+        }
+
+        [data-theme="light"] .icon-moon {
+            display: none;
+        }
+
+        /* Body Layout */
+        .app-body {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex-basis: 70%;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .log-container {
+            flex-basis: 30%;
+            border-left: 1px solid var(--border-color);
+            background-color: var(--container-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Content Styling */
+        .main-content h1 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .main-content p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Drag & Drop */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--container-color);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+        }
+
+        .upload-zone.active {
+            border-color: var(--primary-color);
+            background-color: var(--drag-active);
+        }
+
+        .upload-zone p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .upload-icon {
+            width: 54px;
+            height: 54px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        #kmzFile {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #fileNameDisplay {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 0.8rem;
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.9rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: var(--text-muted);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        /* Log */
+        .log-title-bar {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        #log {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            background-color: var(--log-bg);
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .l-info {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .l-warn {
+            color: var(--warn-color);
+        }
+
+        .l-err {
+            color: var(--error-color);
+        }
+
+        .l-success {
+            color: var(--success-color);
+        }
+
+        .l-head {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        /* Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .processing .spinner {
+            display: block;
+        }
+
+        .processing span {
+            display: none;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Changelog Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--error-color);
+        }
+
+        .modal-body ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .modal-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-body strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 1000px) {
+            .app-body {
+                flex-direction: column;
+            }
+
+            .main-content {
+                flex-basis: auto;
+                height: 50%;
+            }
+
+            .log-container {
+                height: 50%;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <a href="index.html" class="back-btn">← Kembali</a>
+                <h1>Metadata Extractor <span class="version-badge" onclick="openModal()">v1.3</span></h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="themeToggle">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <main class="main-content">
+                <h1>Ekstrak Metadata ke CSV</h1>
+                <p>Unggah file KMZ yang sudah diproses (mengandung SchemaData) untuk diekstrak menjadi file Excel/CSV
+                    yang rapi. Mendukung semua folder (HOME, POLE, FDT, dll).</p>
+
+                <div class="upload-zone" id="dropZone">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p>Klik atau Seret File KMZ ke sini</p>
+                    <span id="fileNameDisplay"></span>
+                    <input type="file" id="kmzFile" accept=".kmz, .kml">
+                </div>
+
+                <div class="action-buttons">
+                    <button id="extractBtn" class="btn btn-primary" disabled>
+                        <div class="spinner"></div>
+                        <span>Ekstrak ke CSV</span>
+                    </button>
+                    <a id="downloadLink" class="btn btn-secondary" style="display: none;">Download File .zip</a>
+                </div>
+            </main>
+
+            <aside class="log-container">
+                <div class="log-title-bar">Log Aktivitas</div>
+                <div id="log"></div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="modal" id="changelogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Changelog</h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><strong>v1.3:</strong> Support kolom baru (Deployment Type & Need Survey) dari ABD Maker LN
+                        v1.4.</li>
+                    <li><strong>v1.2:</strong> Perbaikan logika ekstraksi menggunakan <code>displayName</code> Schema
+                        untuk header yang lebih rapi.</li>
+                    <li><strong>v1.0:</strong> Rilis awal. Support Multi-Folder (HOME, POLE, FDT, FAT, HOOK).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">by FadliGr</div>
+
+    <script>
+        // === UI VARIABLES ===
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('kmzFile');
+        const extractBtn = document.getElementById('extractBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        const logEl = document.getElementById('log');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const rootHtml = document.documentElement;
+
+        let originalKmzFile = null;
+
+        // === 1. THEME LOGIC ===
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        rootHtml.dataset.theme = savedTheme;
+
+        themeToggleBtn.addEventListener('click', () => {
+            const next = rootHtml.dataset.theme === 'dark' ? 'light' : 'dark';
+            rootHtml.dataset.theme = next;
+            localStorage.setItem('theme', next);
+        });
+
+        // === 2. UI LOGIC (MODAL & DRAG DROP) ===
+        function openModal() { document.getElementById('changelogModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('changelogModal').style.display = 'none'; }
+        window.onclick = e => { if (e.target == document.getElementById('changelogModal')) closeModal(); };
+
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
+                originalKmzFile = file;
+                fileNameDisplay.textContent = file.name;
+                extractBtn.disabled = false;
+                downloadLink.style.display = 'none';
+                logEl.innerHTML = '';
+                log('l-info', `File siap: ${file.name}`);
+            } else {
+                alert("Harap upload file .kmz atau .kml");
+            }
+        }
+
+        extractBtn.addEventListener('click', extractMetadata);
+
+        // === 3. LOGGING UTILS ===
+        function log(cls, msg) {
+            const d = document.createElement('div'); d.className = `log-entry ${cls}`;
+            d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+        }
+        function logHeader(msg) {
+            const d = document.createElement('div'); d.className = 'l-head'; d.textContent = msg;
+            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // === 4. XML/KML HELPERS ===
+        function findFolder(rootEl, folderName) {
+            const folders = rootEl.getElementsByTagName("Folder");
+            return Array.from(folders).find(f => f.querySelector(`:scope > name`)?.textContent.trim() === folderName);
+        }
+
+        // === 5. CSV GENERATION LOGIC (SCHEMA BASED) ===
+        function generateCSV(folderEl, folderName, kmlDoc) {
+            const placemarks = folderEl.querySelectorAll(":scope > Placemark");
+            if (placemarks.length === 0) {
+                log('l-info', `Folder ${folderName}: Kosong/Tidak ada placemark.`);
+                return null;
+            }
+
+            const rows = [];
+
+            // --- A. DETERMINE HEADERS ---
+            const firstPlacemark = placemarks[0];
+            const schemaData = firstPlacemark.querySelector(":scope > ExtendedData > SchemaData");
+
+            let headers = []; // Untuk tampilan (DisplayName)
+            let attrNames = []; // Untuk pengambilan data (Attribute Name)
+
+            // Logic ini otomatis mendeteksi kolom apa saja yang ada di KML,
+            // termasuk kolom baru seperti DEPLOYMENT_TYPE dan NEED_SURVEY
+            if (schemaData) {
+                const schemaUrl = schemaData.getAttribute('schemaUrl');
+                if (schemaUrl) {
+                    const schemaId = schemaUrl.substring(1);
+                    const schemaEl = kmlDoc.querySelector(`Schema[id="${schemaId}"]`);
+
+                    if (schemaEl) {
+                        schemaEl.querySelectorAll(":scope > SimpleField").forEach(field => {
+                            const disp = field.querySelector("displayName");
+                            let hText = disp ? disp.textContent.replace(/<[^>]*>/g, '').trim() : field.getAttribute('name');
+                            headers.push(hText);
+                            attrNames.push(field.getAttribute('name'));
+                        });
+                    }
+                }
+
+                // Fallback jika tidak ada definisi Schema di atas
+                if (headers.length === 0) {
+                    schemaData.querySelectorAll("SimpleData").forEach(sd => {
+                        headers.push(sd.getAttribute('name'));
+                        attrNames.push(sd.getAttribute('name'));
+                    });
+                }
+            }
+            else {
+                // Fallback tanpa SchemaData
+                headers = ['Name', 'Longitude', 'Latitude'];
+                attrNames = ['__NAME__', '__LON__', '__LAT__'];
+            }
+
+            rows.push(headers.join(',')); // Header Row
+
+            // --- B. EXTRACT DATA ---
+            placemarks.forEach(pm => {
+                const row = [];
+                const pName = pm.querySelector(":scope > name")?.textContent.trim() || "";
+                const pCoords = pm.querySelector(":scope > Point > coordinates")?.textContent.trim();
+                let pLon = "", pLat = "";
+                if (pCoords) { const c = pCoords.split(','); pLon = c[0]; pLat = c[1]; }
+
+                const sDataMap = new Map();
+                pm.querySelectorAll(":scope > ExtendedData > SchemaData > SimpleData").forEach(sd => {
+                    sDataMap.set(sd.getAttribute('name'), sd.textContent.trim());
+                });
+
+                attrNames.forEach(attr => {
+                    let val = "";
+                    if (attr === '__NAME__') val = pName;
+                    else if (attr === '__LON__') val = pLon;
+                    else if (attr === '__LAT__') val = pLat;
+                    else val = sDataMap.get(attr) || "";
+
+                    // CSV Escaping untuk data yang mengandung koma atau enter
+                    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                        val = `"${val.replace(/"/g, '""')}"`;
+                    }
+                    row.push(val);
+                });
+                rows.push(row.join(','));
+            });
+
+            return rows.join('\n');
+        }
+
+        // === 6. MAIN PROCESS ===
+        async function extractMetadata() {
+            logHeader("Memulai Ekstraksi...");
+            extractBtn.classList.add('processing');
+            extractBtn.disabled = true;
+            downloadLink.style.display = 'none';
+
+            // Daftar Folder yang akan dicek
+            const FOLDERS_TO_EXTRACT = ['HOME', 'FDT', 'FAT', 'HOOK', 'POLE', 'CABLE DROP', 'CLOSURE', 'MICRO', 'CABLE', 'COIL'];
+            const outputZip = new JSZip();
+            let kmlString;
+
+            try {
+                log('l-info', `Membaca file...`);
+
+                if (originalKmzFile.name.endsWith('.kmz')) {
+                    const zip = await new JSZip().loadAsync(originalKmzFile);
+                    let kmlFileEntry = zip.file("doc.kml") || zip.file(/.kml$/i)[0];
+                    if (!kmlFileEntry) throw new Error("Tidak ada file .kml dalam KMZ.");
+                    kmlString = await kmlFileEntry.async("string");
+                } else {
+                    kmlString = await originalKmzFile.text();
+                }
+
+                const parser = new DOMParser();
+                const kmlDoc = parser.parseFromString(kmlString, "application/xml");
+                const documentEl = kmlDoc.querySelector("Document");
+
+                if (!documentEl) throw new Error("Struktur KML tidak valid.");
+
+                let rootElement = findFolder(documentEl, "DISTRIBUSI") || findFolder(documentEl, "BACKBONE") || documentEl;
+                if (rootElement === documentEl) log('l-warn', "Folder DISTRIBUSI/BACKBONE tidak ditemukan. Scan root.");
+                else log('l-success', `Base folder ditemukan: ${rootElement.querySelector("name").textContent}`);
+
+                let filesGenerated = 0;
+
+                for (const folderName of FOLDERS_TO_EXTRACT) {
+                    const folderEl = findFolder(rootElement, folderName);
+                    if (!folderEl) continue;
+
+                    const csvContent = generateCSV(folderEl, folderName, kmlDoc);
+
+                    if (csvContent) {
+                        outputZip.file(`${folderName}.csv`, csvContent);
+                        log('l-success', `Ekstrak: ${folderName} (${csvContent.split('\n').length - 1} baris)`);
+                        filesGenerated++;
+                    }
+                }
+
+                if (filesGenerated === 0) throw new Error("Tidak ada data yang bisa diekstrak.");
+
+                log('l-info', "Mengompres file ZIP...");
+                const zipContent = await outputZip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(zipContent);
+
+                downloadLink.href = url;
+                downloadLink.download = `Extracted_Metadata_${originalKmzFile.name.replace(/\.[^/.]+$/, "")}.zip`;
+                downloadLink.style.display = 'flex';
+
+                logHeader("SELESAI");
+                log('l-success', "File ZIP siap didownload!");
+
+            } catch (error) {
+                log('l-err', error.message);
+                console.error(error);
+            } finally {
+                extractBtn.classList.remove('processing');
+                extractBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
