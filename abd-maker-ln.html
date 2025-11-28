@@ -2,815 +2,683 @@
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ABD Maker LN - SND App</title>
 
+    <link rel="stylesheet" href="main.css">
+
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
+    <!-- Global Style -->
     <style>
-        /* === TEMA & VARIABEL === */
+        /* === DASHBOARD LAYOUT === */
         :root {
-            --bg-color: #ffffff;
-            --container-color: #f8fafc;
-            --log-bg: #f1f5f9;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --input-bg: #ffffff;
-            --primary-color: #2563eb;
-            --primary-text: #ffffff;
-            --success-color: #16a34a;
-            --error-color: #dc2626;
-            --warn-color: #d97706;
-            --drag-active: #eff6ff;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --text-muted: #86868b;
+            --primary-color: #0071e3;
+            --accent-bg: #f5f5f7;
+            --border-color: #d2d2d7;
+            --success-color: #34c759;
+            --warn-color: #ff9f0a;
+            --error-color: #ff3b30;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.1);
         }
 
         :root[data-theme="dark"] {
-            --bg-color: #020817;
-            --container-color: #0f172a;
-            --log-bg: #020817;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #1e293b;
-            --primary-color: #3b82f6;
-            --primary-text: #ffffff;
-            --success-color: #22c55e;
-            --error-color: #ef4444;
-            --warn-color: #f59e0b;
-            --drag-active: #1e3a8a;
-        }
-
-        * {
-            box-sizing: border-box;
+            --bg-color: #000000;
+            --card-bg: #1c1c1e;
+            --text-color: #f5f5f7;
+            --text-muted: #86868b;
+            --accent-bg: #1c1c1e;
+            --border-color: #38383a;
         }
 
         html,
         body {
             height: 100vh;
             width: 100vw;
-            margin: 0;
-            padding: 0;
             overflow: hidden;
+            margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background: var(--bg-color);
             color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .app-container {
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 3fr 1.2fr;
+            gap: 1.5rem;
+            height: 100%;
+            padding: 100px 1.5rem 1.5rem 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .workspace-panel {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            width: 100%;
+            gap: 1.5rem;
+            overflow-y: auto;
+            padding-right: 8px;
+            padding-bottom: 2rem;
         }
 
-        /* Header */
-        .app-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
+        .workspace-panel::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .workspace-panel::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .back-btn {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
+        .workspace-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .card-dashboard {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-color);
-            transition: all 0.2s;
         }
 
-        .back-btn:hover {
-            background-color: var(--container-color);
-            color: var(--text-color);
-        }
-
-        .app-header h1 {
-            margin: 0;
-            font-size: 1.25rem;
+        .section-label {
+            font-size: 0.8rem;
             font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .version-badge {
-            font-size: 0.75rem;
-            background: var(--container-color);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            padding: 2px 8px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
         }
 
-        .icon-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-        }
-
-        .icon-btn:hover {
-            background-color: var(--container-color);
-        }
-
-        [data-theme="dark"] .icon-sun {
-            display: none;
-        }
-
-        [data-theme="light"] .icon-moon {
-            display: none;
-        }
-
-        /* Body & Layout */
-        .app-body {
-            display: flex;
-            flex-direction: row;
-            flex-grow: 1;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .main-content {
-            flex-basis: 70%;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-        }
-
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-top: 1.5rem;
-        }
-
-        .form-header:first-of-type {
-            margin-top: 0;
-        }
-
-        .form-header h2 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--text-color);
-            font-weight: 700;
-        }
-
-        .reset-btn {
-            font-size: 0.85rem;
-            color: var(--error-color);
-            background: none;
-            border: 1px solid var(--error-color);
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .reset-btn:hover {
-            background-color: var(--error-color);
-            color: white;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        /* Inputs */
         .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0;
         }
 
         .form-group label {
-            font-weight: 500;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--text-muted);
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 0.6rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 0.9rem;
-            width: 100%;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: 2px solid var(--primary-color);
-            border-color: transparent;
-        }
-
-        .api-input {
-            border-color: var(--warn-color) !important;
-        }
-
-        /* Drag Drop */
-        .upload-zone {
-            grid-column: 1 / -1;
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 2.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: var(--container-color);
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--primary-color);
-        }
-
-        .upload-zone.active {
-            border-color: var(--primary-color);
-            background-color: var(--drag-active);
-        }
-
-        .upload-zone p {
-            margin: 0.5rem 0 0 0;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .upload-icon {
-            width: 48px;
-            height: 48px;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
-
-        #kmzFile {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        #fileNameDisplay {
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-top: 0.5rem;
+            margin-bottom: 4px;
             display: block;
         }
 
-        /* Buttons */
-        .action-buttons {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
+        .input-compact {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: 0.2s;
+            box-sizing: border-box;
         }
 
-        .btn {
-            flex: 1;
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
+        .input-compact:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .upload-compact {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
             cursor: pointer;
+            background: rgba(0, 122, 255, 0.02);
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .upload-compact:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.01);
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .monitor-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            height: 100%;
+        }
+
+        .monitor-header {
+            background: var(--accent-bg);
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .monitor-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 1rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #34c759;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34c759;
+            animation: pulse 2s infinite;
+        }
+
+        .monitor-log-area {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--bg-color);
+        }
+
+        .log-bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            border-bottom-left-radius: 2px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1.4;
+            font-size: 0.8rem;
+        }
+
+        .log-bubble.info {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .log-bubble.success {
+            border-left: 3px solid var(--success-color);
+            background: rgba(52, 199, 89, 0.1);
+            border-color: transparent;
+        }
+
+        .log-bubble.warn {
+            border-left: 3px solid var(--warn-color);
+            background: rgba(255, 149, 0, 0.1);
+            border-color: transparent;
+        }
+
+        .log-bubble.error {
+            border-left: 3px solid var(--error-color);
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--error-color);
+            border-color: transparent;
+        }
+
+        .log-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            display: block;
+            opacity: 0.7;
+        }
+
+        .monitor-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--card-bg);
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
         }
 
         .btn-primary {
-            background-color: var(--primary-color);
+            background: var(--primary-color);
             color: white;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 113, 227, 0.4);
         }
 
         .btn-primary:disabled {
-            opacity: 0.6;
+            background: var(--border-color);
             cursor: not-allowed;
-            background-color: var(--text-muted);
+            box-shadow: none;
         }
 
         .btn-secondary {
-            background-color: transparent;
-            border: 1px solid var(--success-color);
-            color: var(--success-color);
-            text-decoration: none;
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
         }
 
         .btn-secondary:hover {
-            background-color: var(--success-color);
-            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
         }
 
-        /* Log & Utils */
-        .log-container {
-            flex-basis: 30%;
-            border-left: 1px solid var(--border-color);
-            background-color: var(--container-color);
-            display: flex;
-            flex-direction: column;
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        .log-title-bar {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-        }
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
+            }
 
-        #log {
-            flex-grow: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            background-color: var(--log-bg);
-        }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(52, 199, 89, 0);
+            }
 
-        .log-entry {
-            margin-bottom: 6px;
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-
-        .l-info {
-            color: var(--text-color);
-            opacity: 0.8;
-        }
-
-        .l-warn {
-            color: var(--warn-color);
-        }
-
-        .l-err {
-            color: var(--error-color);
-        }
-
-        .l-success {
-            color: var(--success-color);
-        }
-
-        .l-head {
-            color: var(--primary-color);
-            font-weight: bold;
-            margin-top: 12px;
-            margin-bottom: 4px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 2px;
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(52, 199, 89, 0);
+            }
         }
 
         @keyframes spin {
-            to {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
                 transform: rotate(360deg);
             }
         }
 
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #ffffff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: none;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .processing .spinner {
-            display: block;
+        .animate-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
         }
 
-        .processing span {
-            display: none;
-        }
-
-        .watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 15px;
-            font-size: 11px;
-            color: var(--text-muted);
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background: var(--bg-color);
-            padding: 2rem;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
+        .tool-header-mini {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
         }
 
-        .modal-header h3 {
-            margin: 0;
+        .tool-title {
+            font-size: 1.8rem;
+            font-weight: 800;
             color: var(--text-color);
+            margin: 0;
         }
 
-        .close-modal {
-            background: none;
-            border: none;
+        .tool-desc {
             color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1.5rem;
-            line-height: 1;
+            font-size: 0.9rem;
+            margin: 0;
         }
 
-        .modal-body ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            color: var(--text-muted);
-        }
+        @media (max-width: 900px) {
 
-        @media (max-width: 1000px) {
-            .app-body {
-                flex-direction: column;
+            html,
+            body {
+                overflow: auto;
+                height: auto;
             }
 
-            .form-grid {
+            .dashboard-container {
                 grid-template-columns: 1fr;
+                height: auto;
+                padding-top: 30px;
             }
 
-            .log-container {
-                height: 40%;
-                border-left: none;
-                border-top: 1px solid var(--border-color);
+            .workspace-panel {
+                overflow: visible;
+                padding-bottom: 0;
+            }
+
+            .monitor-panel {
+                height: 400px;
+                margin-bottom: 2rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-left">
-                <a href="index.html" class="back-btn">← Kembali</a>
-                <h1>ABD Maker LN <span class="version-badge" onclick="openModal()">v1.4</span></h1>
-            </div>
-            <div class="header-right">
-                <button class="icon-btn" id="themeToggle"><svg class="icon-sun" xmlns="http://www.w3.org/2000/svg"
-                        width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg><svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg></button>
-            </div>
-        </header>
 
-        <div class="app-body">
-            <main class="main-content">
-                <div class="form-header">
-                    <h2>Konfigurasi API</h2>
-                    <button class="reset-btn" id="resetBtn">Reset Form & Data</button>
+    <div class="dashboard-container">
+        <!-- === KIRI: WORKSPACE (Form & Config) === -->
+        <div class="workspace-panel animate-up">
+            <!-- Header Mini -->
+            <div class="tool-header-mini">
+                <div>
+                    <h1 class="tool-title">ABD Maker LN</h1>
+                    <p class="tool-desc">Design Automation & Metadata Injector</p>
                 </div>
-                <div class="form-group">
-                    <label>Penyedia Nama Jalan (Geocoding)</label>
-                    <select id="geocoderProvider">
-                        <option value="none" selected>Tanpa Nama Jalan (Offline / Cepat)</option>
-                        <option value="nominatim">Nominatim OpenStreetMap (Gratis / Lambat)</option>
-                        <option value="gmaps">Google Maps (Wajib API Key / Cepat)</option>
-                        <option value="mapbox">Mapbox v6 (Wajib Token / Cepat)</option>
-                    </select>
-                </div>
-                <div class="form-group" id="gmaps-key-group" style="display: none; margin-top: 1rem;">
-                    <label class="l-warn">Google Maps API Key</label>
-                    <input type="password" id="gmapsApiKey" class="api-input"
-                        placeholder="Tempel API Key Google di sini">
-                </div>
-                <div class="form-group" id="mapbox-key-group" style="display: none; margin-top: 1rem;">
-                    <label class="l-warn">Mapbox Access Token</label>
-                    <input type="password" id="mapboxToken" class="api-input"
-                        placeholder="Tempel Access Token Mapbox (pk.ey...)">
-                </div>
-                <div style="margin-top: 2rem;"></div>
+                <div class="version-badge"
+                    style="background: var(--accent-bg); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-muted)">
+                    v1.9 (Fixed Styles & Size) 🚀</div>
+            </div>
 
-                <div class="form-grid">
-                    <div class="column">
-                        <div class="form-header">
-                            <h2>Aset (POLE)</h2>
-                        </div>
-                        <div class="form-group"><label>Pole Provider (New)</label><input type="text" id="poleProvider"
-                                value="LN"></div>
-                        <div class="form-group"><label>Pole Type</label><input type="text" id="poleType" value="7/250">
-                        </div>
+            <!-- 1. Config Peta -->
+            <div class="card-dashboard">
+                <div class="section-label">🌍 Peta & Lokasi</div>
+                <div class="compact-grid">
+                    <div class="form-group">
+                        <label>Penyedia Jalan</label>
+                        <select id="geocoderProvider" class="input-compact">
+                            <option value="none" selected>Offline (Cepat) ⚡</option>
+                            <option value="nominatim">Nominatim (Free) 🐢</option>
+                            <option value="gmaps">Google Maps 🔑</option>
+                            <option value="mapbox">Mapbox 🔑</option>
+                        </select>
                     </div>
-                    <div class="column">
-                        <div class="form-header">
-                            <h2>Data Wilayah</h2>
-                        </div>
-                        <div class="form-group"><label>Cluster Name</label><input type="text" id="clusterName"
-                                value="BANTAN"></div>
-                        <div class="form-group"><label>District</label><input type="text" id="district"
-                                value="MEDAN TEMBUNG"></div>
-                        <div class="form-group"><label>Sub District</label><input type="text" id="subDistrict"
-                                value="BANTAN"></div>
-                        <div class="form-group"><label>ID Area</label><input type="text" id="idArea"
-                                value="12MDN02448AS-01"></div>
+                    <div class="form-group" id="gmaps-key-group" style="display: none">
+                        <label style="color: var(--warn-color)">Gmaps Key</label>
+                        <input type="password" id="gmapsApiKey" class="input-compact" placeholder="Paste API Key..." />
                     </div>
-                    <div class="column">
-                        <div class="form-header">
-                            <h2>Detail Teknis</h2>
-                        </div>
-                        <div class="form-group"><label>Category BizPass</label><select id="categoryBizPass">
-                                <option value="RESIDENCE">RESIDENCE</option>
-                                <option value="SOHO">SOHO</option>
-                                <option value="BUSINESS">BUSINESS</option>
-                            </select></div>
-                        <div class="form-group"><label>Post Code</label><input type="text" id="postCode" value="20224">
-                        </div>
-                        <div class="form-group"><label>OV/UG</label><select id="ovUg">
-                                <option value="O">O (Overhead)</option>
-                                <option value="U">U (Underground)</option>
-                            </select></div>
-                        <div class="form-group"><label>Deployment Type</label><input type="text" id="deploymentType"
-                                value="G_BROWNFIELD"></div>
-                        <div class="form-group"><label>Need Survey</label><input type="text" id="needSurvey" value="NO">
-                        </div>
-                        <div class="form-group"><label>House Comment</label><input type="text" id="houseComment"
-                                value="NEED SURVEY"></div>
+                    <div class="form-group" id="mapbox-key-group" style="display: none">
+                        <label style="color: var(--warn-color)">Mapbox Token</label>
+                        <input type="password" id="mapboxToken" class="input-compact" placeholder="Paste Token..." />
                     </div>
                 </div>
-                <div style="margin-top: 2rem;"></div>
-
-                <div class="form-header">
-                    <h2>File KMZ</h2>
-                </div>
-                <div class="upload-zone" id="dropZone">
-                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <p>Klik atau Seret File KMZ ke sini</p>
-                    <span id="fileNameDisplay"></span>
-                    <input type="file" id="kmzFile" accept=".kmz">
-                </div>
-                <div class="action-buttons">
-                    <button id="processBtn" class="btn btn-primary" disabled>
-                        <div class="spinner"></div><span>Proses File KMZ</span>
-                    </button>
-                    <a id="downloadLink" class="btn btn-secondary" style="display: none;">Download Hasil</a>
-                </div>
-            </main>
-
-            <aside class="log-container">
-                <div class="log-title-bar">Log Aktivitas</div>
-                <div id="log"></div>
-            </aside>
-        </div>
-    </div>
-
-    <div class="modal" id="changelogModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Changelog</h3><button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-body">
-                <ul>
-                    <li><strong>v1.4:</strong> Fix FDT Code, Auto Cable Drop (Magenta), Tambah Metadata HOME.</li>
-                    <li><strong>v1.3:</strong> Refactoring struktur variabel global.</li>
-                    <li><strong>v1.2:</strong> Perbaikan logika FDT Snap-to-Pole.</li>
-                    <li><strong>v1.0:</strong> Rilis Fitur Lengkap.</li>
-                </ul>
+
+            <!-- 2. Detail Input -->
+            <div class="card-dashboard">
+                <div class="section-label">📝 Parameter Desain</div>
+                <div class="compact-grid">
+                    <div class="form-group"><label>Pole Provider</label><input type="text" id="poleProvider"
+                            class="input-compact" value="LN" /></div>
+                    <div class="form-group"><label>Pole Type</label><input type="text" id="poleType"
+                            class="input-compact" value="7/250" /></div>
+                    <div class="form-group"><label>Cluster</label><input type="text" id="clusterName"
+                            class="input-compact" value="BANTAN" /></div>
+                    <div class="form-group"><label>District</label><input type="text" id="district"
+                            class="input-compact" value="MEDAN TEMBUNG" /></div>
+                    <div class="form-group"><label>Sub District</label><input type="text" id="subDistrict"
+                            class="input-compact" value="BANTAN" /></div>
+                    <div class="form-group"><label>ID Area</label><input type="text" id="idArea" class="input-compact"
+                            value="12MDN02448AS-01" /></div>
+                    <div class="form-group">
+                        <label>Category</label><select id="categoryBizPass" class="input-compact">
+                            <option>RESIDENCE</option>
+                            <option>SOHO</option>
+                            <option>BUSINESS</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Post Code</label><input type="text" id="postCode"
+                            class="input-compact" value="20224" /></div>
+                    <div class="form-group">
+                        <label>OV/UG</label><select id="ovUg" class="input-compact">
+                            <option value="O">Overhead</option>
+                            <option value="U">Underground</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Deployment</label><input type="text" id="deploymentType"
+                            class="input-compact" value="G_BROWNFIELD" /></div>
+                    <div class="form-group"><label>Need Survey</label><input type="text" id="needSurvey"
+                            class="input-compact" value="NO" /></div>
+                    <div class="form-group"><label>Comment</label><input type="text" id="houseComment"
+                            class="input-compact" value="NEED SURVEY" /></div>
+                </div>
+                <div style="margin-top: 1rem; text-align: right">
+                    <button id="resetBtn"
+                        style="background: none; border: none; color: var(--error-color); font-size: 0.8rem; cursor: pointer; font-weight: 600">♻️
+                        Reset Default</button>
+                </div>
+            </div>
+
+            <!-- 3. Upload -->
+            <div class="upload-compact" id="dropZone">
+                <div style="font-size: 2.5rem; margin-bottom: 5px">📂</div>
+                <p style="color: var(--text-muted); font-weight: 500; margin: 0">Klik / Drop file <strong>.KMZ</strong>
+                    di sini</p>
+                <span id="fileNameDisplay"
+                    style="display: block; margin-top: 8px; font-weight: 700; color: var(--primary-color); font-size: 0.9rem"></span>
+                <input type="file" id="kmzFile" accept=".kmz"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer" />
             </div>
         </div>
+
+        <!-- KANAN: MONITOR -->
+        <aside class="monitor-panel animate-up" style="animation-delay: 0.2s">
+            <div class="monitor-header">
+                <div class="monitor-title">
+                    <div class="pulse-dot"></div>
+                    Ruang Kendali 🚀
+                </div>
+                <div style="font-size: 0.7rem; color: var(--text-muted)">LIVE</div>
+            </div>
+
+            <div class="monitor-log-area" id="log">
+                <div style="text-align: center; color: var(--text-muted); margin-top: 50%">
+                    <div style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5">📡</div>
+                    <p style="font-size: 0.85rem">Menunggu misi dari Kapten...</p>
+                </div>
+            </div>
+
+            <div class="monitor-footer">
+                <button id="processBtn" class="btn-action btn-primary" style="width: 100%" disabled>
+                    <span class="spinner"
+                        style="width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: none"></span>
+                    <span>Mulai Proses</span>
+                </button>
+                <a id="downloadLink" class="btn-action btn-secondary"
+                    style="width: 100%; margin-top: 10px; display: none; justify-content: center">
+                    <span>🎉 Download Hasil (Clean)</span>
+                </a>
+            </div>
+        </aside>
     </div>
-    <div class="watermark">by FadliGr</div>
+    <script src="script.js"></script>
 
     <script>
-        // ============================================================
-        // 1. GLOBAL VARIABLES (CLEAN CODE: DECLARE EVERYTHING FIRST)
-        // ============================================================
+        // VARIABLES
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("kmzFile");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const processBtn = document.getElementById("processBtn");
+        const downloadLink = document.getElementById("downloadLink");
+        const logEl = document.getElementById("log");
+        const resetBtn = document.getElementById("resetBtn");
 
-        // UI Elements
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('kmzFile');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        const processBtn = document.getElementById('processBtn');
-        const downloadLink = document.getElementById('downloadLink');
-        const logEl = document.getElementById('log');
-        const resetBtn = document.getElementById('resetBtn');
-
-        const geocoderProvider = document.getElementById('geocoderProvider');
-        const gmapsKeyGroup = document.getElementById('gmaps-key-group');
-        const mapboxKeyGroup = document.getElementById('mapbox-key-group');
-        const gmapsApiKeyInput = document.getElementById('gmapsApiKey');
-        const mapboxTokenInput = document.getElementById('mapboxToken');
-        const themeToggle = document.getElementById('themeToggle');
-        const rootHtml = document.documentElement;
+        const geocoderProvider = document.getElementById("geocoderProvider");
+        const gmapsKeyGroup = document.getElementById("gmaps-key-group");
+        const mapboxKeyGroup = document.getElementById("mapbox-key-group");
+        const gmapsApiKeyInput = document.getElementById("gmapsApiKey");
+        const mapboxTokenInput = document.getElementById("mapboxToken");
 
         let originalKmzFile = null;
 
-        // Object Manual Inputs
+        // Input Mapping
         const inputElements = {
-            clusterName: document.getElementById('clusterName'),
-            district: document.getElementById('district'),
-            subDistrict: document.getElementById('subDistrict'),
-            categoryBizPass: document.getElementById('categoryBizPass'),
-            postCode: document.getElementById('postCode'),
-            ovUg: document.getElementById('ovUg'),
-            idArea: document.getElementById('idArea'),
-            houseComment: document.getElementById('houseComment'),
-            poleProvider: document.getElementById('poleProvider'),
-            poleType: document.getElementById('poleType'),
-            deploymentType: document.getElementById('deploymentType'), // New
-            needSurvey: document.getElementById('needSurvey'), // New
+            clusterName: document.getElementById("clusterName"),
+            district: document.getElementById("district"),
+            subDistrict: document.getElementById("subDistrict"),
+            categoryBizPass: document.getElementById("categoryBizPass"),
+            postCode: document.getElementById("postCode"),
+            ovUg: document.getElementById("ovUg"),
+            idArea: document.getElementById("idArea"),
+            houseComment: document.getElementById("houseComment"),
+            poleProvider: document.getElementById("poleProvider"),
+            poleType: document.getElementById("poleType"),
+            deploymentType: document.getElementById("deploymentType"),
+            needSurvey: document.getElementById("needSurvey"),
             geocoderProvider: geocoderProvider,
             gmapsApiKey: gmapsApiKeyInput,
-            mapboxToken: mapboxTokenInput
+            mapboxToken: mapboxTokenInput,
         };
 
-        // ============================================================
-        // 2. THEME & AUTO-SAVE LOGIC
-        // ============================================================
-
-        // Init Theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        rootHtml.dataset.theme = savedTheme;
-
-        themeToggle.addEventListener('click', () => {
-            const next = rootHtml.dataset.theme === 'dark' ? 'light' : 'dark';
-            rootHtml.dataset.theme = next;
-            localStorage.setItem('theme', next);
-        });
-
-        // Auto Save & Load
+        // AUTO-SAVE
         function loadStorage() {
             for (const key in inputElements) {
-                const val = localStorage.getItem('abd_' + key);
+                const val = localStorage.getItem("abd_" + key);
                 if (val !== null) inputElements[key].value = val;
             }
-            geocoderProvider.dispatchEvent(new Event('change'));
+            geocoderProvider.dispatchEvent(new Event("change"));
         }
 
         function setupAutoSave() {
             for (const key in inputElements) {
-                inputElements[key].addEventListener('input', function () { localStorage.setItem('abd_' + key, this.value); });
-                inputElements[key].addEventListener('change', function () { localStorage.setItem('abd_' + key, this.value); });
+                inputElements[key].addEventListener("input", function () {
+                    localStorage.setItem("abd_" + key, this.value);
+                });
+                inputElements[key].addEventListener("change", function () {
+                    localStorage.setItem("abd_" + key, this.value);
+                });
             }
         }
 
-        resetBtn.addEventListener('click', () => {
-            if (confirm("Yakin reset semua data form?")) { localStorage.clear(); location.reload(); }
+        resetBtn.addEventListener("click", () => {
+            if (confirm("Yakin reset semua data form?")) {
+                localStorage.clear();
+                location.reload();
+            }
         });
 
         loadStorage();
         setupAutoSave();
 
-        // ============================================================
-        // 3. FILE HANDLING & UI LOGIC
-        // ============================================================
+        // UI Logic
+        geocoderProvider.addEventListener("change", (e) => {
+            const v = e.target.value;
+            gmapsKeyGroup.style.display = v === "gmaps" ? "block" : "none";
+            mapboxKeyGroup.style.display = v === "mapbox" ? "block" : "none";
+        });
 
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault(); dropZone.classList.remove('active');
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("active");
+        });
+        dropZone.addEventListener("dragleave", () => dropZone.classList.remove("active"));
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("active");
             if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
         });
-        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
 
         function handleFile(f) {
-            if (f.name.toLowerCase().endsWith('.kmz')) {
+            if (f.name.toLowerCase().endsWith(".kmz")) {
                 originalKmzFile = f;
                 fileNameDisplay.textContent = f.name;
                 processBtn.disabled = false;
-                downloadLink.style.display = 'none';
-                logEl.innerHTML = '';
-                log('l-info', `File siap: ${f.name}`);
+                downloadLink.style.display = "none";
+                if (logEl.querySelector('div[style*="text-align"]')) logEl.innerHTML = "";
+                log("info", `File diterima: ${f.name} ✅`);
             } else {
                 alert("Harap upload file .kmz");
             }
         }
 
-        geocoderProvider.addEventListener('change', (e) => {
-            const v = e.target.value;
-            gmapsKeyGroup.style.display = (v === 'gmaps') ? 'flex' : 'none';
-            mapboxKeyGroup.style.display = (v === 'mapbox') ? 'flex' : 'none';
-        });
-
-        window.openModal = () => document.getElementById('changelogModal').style.display = 'flex';
-        window.closeModal = () => document.getElementById('changelogModal').style.display = 'none';
-        window.onclick = e => { if (e.target == document.getElementById('changelogModal')) closeModal(); };
-
-        function log(c, m) {
-            const d = document.createElement('div'); d.className = `log-entry ${c}`;
-            d.textContent = `[${new Date().toLocaleTimeString()}] ${m}`;
-            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+        function log(type, m) {
+            if (logEl.innerText.includes("Menunggu misi")) logEl.innerHTML = "";
+            const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            const d = document.createElement("div");
+            let cssClass = "info";
+            if (type === "l-warn") cssClass = "warn";
+            if (type === "l-err") cssClass = "error";
+            if (type === "l-success" || type === "success") cssClass = "success";
+            d.className = `log-bubble ${cssClass}`;
+            d.innerHTML = `<span class="log-time">${time}</span>${m}`;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
         }
         function logHeader(m) {
-            const d = document.createElement('div'); d.className = 'l-head'; d.textContent = m;
-            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+            log("info", `<strong>--- ${m} ---</strong>`);
         }
 
-        // ============================================================
-        // 4. API HELPERS
-        // ============================================================
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-
+        // API Helpers
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         async function getNominatim(lat, lon) {
             try {
                 const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`);
-                if (!r.ok) throw 0; const d = await r.json();
+                if (!r.ok) throw 0;
+                const d = await r.json();
                 return d.address?.road || d.address?.hamlet || d.address?.residential || null;
-            } catch { return null; }
+            } catch {
+                return null;
+            }
         }
-
         async function getGmaps(lat, lon, key) {
             try {
                 const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${key}`);
-                const d = await r.json(); if (d.status !== 'OK') return null;
+                const d = await r.json();
+                if (d.status !== "OK") return null;
                 const c = d.results[0].address_components;
-                let x = c.find(a => a.types.includes('route')) || c.find(a => a.types.includes('neighborhood')) || c.find(a => a.types.includes('sublocality'));
+                let x = c.find((a) => a.types.includes("route")) || c.find((a) => a.types.includes("neighborhood")) || c.find((a) => a.types.includes("sublocality"));
                 return x ? x.long_name : null;
-            } catch { return null; }
+            } catch {
+                return null;
+            }
         }
-
         async function getMapbox(lat, lon, token) {
             try {
                 const r = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lon}&latitude=${lat}&types=street&limit=1&access_token=${token}`);
                 const d = await r.json();
                 return d.features?.[0]?.properties?.name || null;
-            } catch { return null; }
+            } catch {
+                return null;
+            }
         }
-
         function parseRoad(f) {
             if (!f) return { p: "JL.", n: "-" };
             const u = f.toUpperCase();
@@ -820,37 +688,86 @@
             return { p: "JL.", n: u };
         }
 
-        // ============================================================
-        // 5. XML TEMPLATES (Updated HOME Schema)
-        // ============================================================
-        const XML_POLE = `<Schema name="POLE" id="S_POLE_SSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField></Schema><StyleMap id="pointStyleMap0"><Pair><key>normal</key><styleUrl>#normPointStyle_POLE</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#hlightPointStyle_POLE</styleUrl></Pair></StyleMap><Style id="hlightPointStyle_POLE"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/0</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[POLE/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[POLE/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[POLE/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[POLE/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[POLE/Pole_Type]</td></tr></table>]]></text></BalloonStyle></Style><Style id="normPointStyle_POLE"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/1</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[POLE/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[POLE/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[POLE/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[POLE/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[POLE/Pole_Type]</td></tr></table>]]></text></BalloonStyle></Style>`;
-        const XML_FDT = `<Schema name="FDT" id="S_FDT_SSSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField><SimpleField type="string" name="FAT_ID_NETWORK_ID"><displayName><b>FAT ID/NETWORK ID</b></displayName></SimpleField></Schema><StyleMap id="pointStyleMap1"><Pair><key>normal</key><styleUrl>#normPointStyle_FDT</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#hlightPointStyle_FDT</styleUrl></Pair></StyleMap><Style id="hlightPointStyle_FDT"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/0</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FDT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FDT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FDT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FDT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FDT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FDT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style><Style id="normPointStyle_FDT"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/1</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FDT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FDT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FDT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FDT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FDT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FDT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style>`;
-        const XML_FAT = `<Schema name="FAT" id="S_FAT_SSSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField><SimpleField type="string" name="FAT_ID_NETWORK_ID"><displayName><b>FAT ID/NETWORK ID</b></displayName></SimpleField></Schema><StyleMap id="pointStyleMap3"><Pair><key>normal</key><styleUrl>#normPointStyle_FAT</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#hlightPointStyle_FAT</styleUrl></Pair></StyleMap><Style id="hlightPointStyle_FAT"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/0</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FAT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FAT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FAT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FAT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FAT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FAT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style><Style id="normPointStyle_FAT"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/1</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FAT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FAT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FAT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FAT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FAT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FAT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style>`;
-        const XML_HOOK = `<Schema name="HOOK" id="S_HOOK_SSS"><SimpleField type="string" name="Clamp_Hook_ID"><displayName><b>Clamp_Hook_ID</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LATITUDE"><displayName><b>Clamp_Hook_LATITUDE</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LONGITUDE"><displayName><b>Clamp_Hook_LONGITUDE</b></displayName></SimpleField></Schema><StyleMap id="pointStyleMap"><Pair><key>normal</key><styleUrl>#normPointStyle_HOOK</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#hlightPointStyle_HOOK</styleUrl></Pair></StyleMap><Style id="hlightPointStyle_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://googleusercontent.com/maps/google.com/5</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style><Style id="normPointStyle_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://googleusercontent.com/maps/google.com/6</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style>`;
+        // XML Templates (NAMESPACED IDs TO PREVENT CONFLICTS)
+        const XML_POLE = `<Schema name="POLE" id="S_POLE_SSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField></Schema><StyleMap id="SM_POLE"><Pair><key>normal</key><styleUrl>#SN_POLE</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#SH_POLE</styleUrl></Pair></StyleMap><Style id="SH_POLE"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-blank.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[POLE/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[POLE/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[POLE/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[POLE/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[POLE/Pole_Type]</td></tr></table>]]></text></BalloonStyle></Style><Style id="SN_POLE"><IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-blank.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[POLE/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[POLE/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[POLE/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[POLE/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[POLE/Pole_Type]</td></tr></table>]]></text></BalloonStyle></Style>`;
 
-        // Updated HOME Schema with DEPLOYMENT_TYPE and NEED_SURVEY
-        const XML_HOME = `<Schema name="HOME" id="S_HOME_SCHEMA"><SimpleField type="string" name="HOMEPASS_ID"><displayName><b>HOMEPASS_ID</b></displayName></SimpleField><SimpleField type="string" name="CLUSTER_NAME"><displayName><b>CLUSTER_NAME</b></displayName></SimpleField><SimpleField type="string" name="PREFIX_ADDRESS"><displayName><b>PREFIX_ADDRESS</b></displayName></SimpleField><SimpleField type="string" name="STREET_NAME"><displayName><b>STREET_NAME</b></displayName></SimpleField><SimpleField type="string" name="HOUSE_NUMBER"><displayName><b>HOUSE_NUMBER</b></displayName></SimpleField><SimpleField type="string" name="BLOCK"><displayName><b>BLOCK</b></displayName></SimpleField><SimpleField type="string" name="FLOOR"><displayName><b>FLOOR</b></displayName></SimpleField><SimpleField type="string" name="RT"><displayName><b>RT</b></displayName></SimpleField><SimpleField type="string" name="RW"><displayName><b>RW</b></displayName></SimpleField><SimpleField type="string" name="DISTRICT"><displayName><b>DISTRICT</b></displayName></SimpleField><SimpleField type="string" name="SUB_DISTRICT"><displayName><b>SUB_DISTRICT</b></displayName></SimpleField><SimpleField type="string" name="FDT_CODE"><displayName><b>FDT_CODE</b></displayName></SimpleField><SimpleField type="string" name="FAT_CODE"><displayName><b>FAT_CODE</b></displayName></SimpleField><SimpleField type="string" name="BUILDING_LATITUDE"><displayName><b>BUILDING_LATITUDE</b></displayName></SimpleField><SimpleField type="string" name="BUILDING_LONGITUDE"><displayName><b>BUILDING_LONGITUDE</b></displayName></SimpleField><SimpleField type="string" name="Category_BizPass"><displayName><b>Category BizPass</b></displayName></SimpleField><SimpleField type="string" name="POST_CODE"><displayName><b>POST CODE</b></displayName></SimpleField><SimpleField type="string" name="ADDRESS_POLE___FAT"><displayName><b>ADDRESS POLE / FAT</b></displayName></SimpleField><SimpleField type="string" name="OV_UG"><displayName><b>OV_UG</b></displayName></SimpleField><SimpleField type="string" name="HOUSE_COMMENT_"><displayName><b>HOUSE_COMMENT_</b></displayName></SimpleField><SimpleField type="string" name="BUILDING_NAME"><displayName><b>BUILDING_NAME</b></displayName></SimpleField><SimpleField type="string" name="TOWER"><displayName><b>TOWER</b></displayName></SimpleField><SimpleField type="string" name="APTN"><displayName><b>APTN</b></displayName></SimpleField><SimpleField type="string" name="FIBER_NODE__HFC_"><displayName><b>FIBER_NODE__HFC_</b></displayName></SimpleField><SimpleField type="string" name="ID_Area"><displayName><b>ID_Area</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_ID"><displayName><b>Clamp_Hook_ID</b></displayName></SimpleField><SimpleField type="string" name="DEPLOYMENT_TYPE"><displayName><b>DEPLOYMENT_TYPE</b></displayName></SimpleField><SimpleField type="string" name="NEED_SURVEY"><displayName><b>NEED_SURVEY</b></displayName></SimpleField></Schema><StyleMap id="pointStyleMapHOME"><Pair><key>normal</key><styleUrl>#normPointStyleHOME</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#hlightPointStyleHOME</styleUrl></Pair></StyleMap><Style id="hlightPointStyleHOME"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/0</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS_POLE___FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle></Style><Style id="normPointStyleHOME"><IconStyle><Icon><href>http://googleusercontent.com/maps/google.com/1</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS_POLE___FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle></Style>`;
+        const XML_FDT = `<Schema name="FDT" id="S_FDT_SSSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField><SimpleField type="string" name="FAT_ID_NETWORK_ID"><displayName><b>FAT ID/NETWORK ID</b></displayName></SimpleField></Schema><StyleMap id="SM_FDT"><Pair><key>normal</key><styleUrl>#SN_FDT</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#SH_FDT</styleUrl></Pair></StyleMap><Style id="SH_FDT"><IconStyle><color>ffff0000</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/square.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FDT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FDT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FDT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FDT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FDT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FDT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style><Style id="SN_FDT"><IconStyle><color>ffff0000</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/square.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FDT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FDT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FDT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FDT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FDT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FDT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style>`;
+
+        const XML_FAT = `<Schema name="FAT" id="S_FAT_SSSSSS"><SimpleField type="string" name="Pole_ID__New_"><displayName><b>Pole ID (New)</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Lat__NEW"><displayName><b>Coordinate (Lat) NEW</b></displayName></SimpleField><SimpleField type="string" name="Coordinate__Long__NEW"><displayName><b>Coordinate (Long) NEW</b></displayName></SimpleField><SimpleField type="string" name="Pole_Provider__New_"><displayName><b>Pole Provider (New)</b></displayName></SimpleField><SimpleField type="string" name="Pole_Type"><displayName><b>Pole Type</b></displayName></SimpleField><SimpleField type="string" name="FAT_ID_NETWORK_ID"><displayName><b>FAT ID/NETWORK ID</b></displayName></SimpleField></Schema><StyleMap id="SM_FAT"><Pair><key>normal</key><styleUrl>#SN_FAT</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#SH_FAT</styleUrl></Pair></StyleMap><Style id="SH_FAT"><IconStyle><color>ff00ff55</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/triangle.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FAT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FAT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FAT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FAT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FAT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FAT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style><Style id="SN_FAT"><IconStyle><color>ff00ff55</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/triangle.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Pole ID (New)</b></td><td>$[FAT/Pole_ID__New_]</td></tr><tr><td><b>Coordinate (Lat) NEW</b></td><td>$[FAT/Coordinate__Lat__NEW]</td></tr><tr><td><b>Coordinate (Long) NEW</b></td><td>$[FAT/Coordinate__Long__NEW]</td></tr><tr><td><b>Pole Provider (New)</b></td><td>$[FAT/Pole_Provider__New_]</td></tr><tr><td><b>Pole Type</b></td><td>$[FAT/Pole_Type]</td></tr><tr><td><b>FAT ID/NETWORK ID</b></td><td>$[FAT/FAT_ID_NETWORK_ID]</td></tr></table>]]></text></BalloonStyle></Style>`;
+
+        const XML_HOOK = `<Schema name="HOOK" id="S_HOOK_SSS"><SimpleField type="string" name="Clamp_Hook_ID"><displayName><b>Clamp_Hook_ID</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LATITUDE"><displayName><b>Clamp_Hook_LATITUDE</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LONGITUDE"><displayName><b>Clamp_Hook_LONGITUDE</b></displayName></SimpleField></Schema><StyleMap id="SM_HOOK"><Pair><key>normal</key><styleUrl>#SN_HOOK</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#SH_HOOK</styleUrl></Pair></StyleMap><Style id="SH_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_square_highlight.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style><Style id="SN_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_square.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style>`;
+
+        const XML_HOME = `<Schema name="HOME" id="S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS">
+            <SimpleField type="string" name="HOMEPASS_ID"><displayName>&lt;b&gt;HOMEPASS_ID&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="CLUSTER_NAME"><displayName>&lt;b&gt;CLUSTER_NAME&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="PREFIX_ADDRESS"><displayName>&lt;b&gt;PREFIX_ADDRESS&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="STREET_NAME"><displayName>&lt;b&gt;STREET_NAME&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="HOUSE_NUMBER"><displayName>&lt;b&gt;HOUSE_NUMBER&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="BLOCK"><displayName>&lt;b&gt;BLOCK&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="FLOOR"><displayName>&lt;b&gt;FLOOR&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="RT"><displayName>&lt;b&gt;RT&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="RW"><displayName>&lt;b&gt;RW&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="DISTRICT"><displayName>&lt;b&gt;DISTRICT&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="SUB_DISTRICT"><displayName>&lt;b&gt;SUB_DISTRICT&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="FDT_CODE"><displayName>&lt;b&gt;FDT_CODE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="FAT_CODE"><displayName>&lt;b&gt;FAT_CODE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_LATITUDE"><displayName>&lt;b&gt;BUILDING_LATITUDE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_LONGITUDE"><displayName>&lt;b&gt;BUILDING_LONGITUDE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="Category_BizPass"><displayName>&lt;b&gt;Category BizPass&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="POST_CODE"><displayName>&lt;b&gt;POST CODE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="ADDRESS_POLE___FAT"><displayName>&lt;b&gt;ADDRESS POLE / FAT&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="OV_UG"><displayName>&lt;b&gt;OV_UG&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="HOUSE_COMMENT_"><displayName>&lt;b&gt;HOUSE_COMMENT_&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_NAME"><displayName>&lt;b&gt;BUILDING_NAME&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="TOWER"><displayName>&lt;b&gt;TOWER&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="APTN"><displayName>&lt;b&gt;APTN&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="FIBER_NODE__HFC_"><displayName>&lt;b&gt;FIBER_NODE__HFC_&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="ID_Area"><displayName>&lt;b&gt;ID_Area&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="Clamp_Hook_ID"><displayName>&lt;b&gt;Clamp_Hook_ID&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="DEPLOYMENT_TYPE"><displayName>&lt;b&gt;DEPLOYMENT_TYPE&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="NEED_SURVEY"><displayName>&lt;b&gt;NEED_SURVEY&lt;/b&gt;</displayName></SimpleField>
+        </Schema>
+        <StyleMap id="SM_HOME">
+            <Pair><key>normal</key><styleUrl>#SN_HOME</styleUrl></Pair>
+            <Pair><key>highlight</key><styleUrl>#SH_HOME</styleUrl></Pair>
+        </StyleMap>
+        <Style id="SH_HOME">
+            <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href></Icon></IconStyle>
+            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
+        </Style>
+        <Style id="SN_HOME">
+            <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle>
+            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
+        </Style>`;
+
         const ALL_XML = XML_POLE + XML_FDT + XML_FAT + XML_HOOK + XML_HOME;
 
-        // ============================================================
-        // 6. MAIN LOGIC
-        // ============================================================
-        processBtn.addEventListener('click', async () => {
-            logHeader("Memulai Proses...");
-            processBtn.classList.add('processing');
+        // MAIN LOGIC
+        processBtn.addEventListener("click", async () => {
+            logHeader("Memulai Misi 🚀...");
+            processBtn.classList.add("processing");
             processBtn.disabled = true;
-            downloadLink.style.display = 'none';
+            downloadLink.style.display = "none";
 
+            // DEFINISI VARIABEL PENTING DI SINI AGAR TIDAK ERROR
+            let cableDropsStr = "";
             let summary = { pole: 0, fdt: 0, fat: 0, hook: 0, home: 0, h_str: 0, h_fat: 0, h_hook: 0, drops: 0 };
+
             const provider = inputElements.geocoderProvider.value;
             const gKey = inputElements.gmapsApiKey.value;
             const mToken = inputElements.mapboxToken.value;
 
-            if (provider === 'gmaps' && !gKey) {
-                alert("API Key Google kosong!"); processBtn.classList.remove('processing'); processBtn.disabled = false; return;
+            if (provider === "gmaps" && !gKey) {
+                alert("API Key Google kosong!");
+                processBtn.classList.remove("processing");
+                processBtn.disabled = false;
+                return;
             }
-            if (provider === 'mapbox' && !mToken) {
-                alert("Token Mapbox kosong!"); processBtn.classList.remove('processing'); processBtn.disabled = false; return;
+            if (provider === "mapbox" && !mToken) {
+                alert("Token Mapbox kosong!");
+                processBtn.classList.remove("processing");
+                processBtn.disabled = false;
+                return;
             }
 
             try {
@@ -859,7 +776,7 @@
                     if (inputElements[key].tagName) data[key] = inputElements[key].value;
                 }
 
-                log('l-info', 'Membuka KMZ...');
+                log("info", "Membuka brankas KMZ... 🔓");
                 const zip = await new JSZip().loadAsync(originalKmzFile);
                 const kmlFileEntry = zip.file("doc.kml") || zip.file(/.kml$/i)[0];
                 if (!kmlFileEntry) throw new Error("Tidak ada file KML");
@@ -871,14 +788,25 @@
 
                 // Inject Styles
                 Array.from(parser.parseFromString(`<root>${ALL_XML}</root>`, "application/xml").documentElement.childNodes)
-                    .reverse().forEach(n => root.prepend(doc.importNode(n, true)));
+                    .reverse()
+                    .forEach((n) => root.prepend(doc.importNode(n, true)));
 
                 // Find Folders
                 const findFolder = (p, n) => Array.from(p.getElementsByTagName("Folder")).find(f => f.querySelector(":scope>name")?.textContent.trim() === n);
                 const mainF = findFolder(root, "DISTRIBUSI");
                 if (!mainF) throw new Error("Folder DISTRIBUSI hilang");
 
-                const fPole = findFolder(mainF, "POLE"), fHook = findFolder(mainF, "HOOK"), fFDT = findFolder(mainF, "FDT"), fFAT = findFolder(mainF, "FAT"), fHome = findFolder(mainF, "HOME");
+                const fPole = findFolder(mainF, "POLE");
+                const fHook = findFolder(mainF, "HOOK");
+                const fFDT = findFolder(mainF, "FDT");
+                const fFAT = findFolder(mainF, "FAT");
+                const fHome = findFolder(mainF, "HOME");
+                const fCable = findFolder(mainF, "CABLE DISTRIBUTION");
+                const fSling = findFolder(mainF, "SLINGWIRE");
+
+                // Fix QSPAN folder search - check root first, then distribution
+                let fQSpan = findFolder(root, "QSPAN");
+                if (!fQSpan && mainF) fQSpan = findFolder(mainF, "QSPAN");
 
                 // Get Points Helper
                 const getPts = (f) => {
@@ -889,157 +817,304 @@
                         return turf.point(c.split(',').map(parseFloat), { name: p.querySelector("name")?.textContent.trim() });
                     }).filter(Boolean));
                 };
-                const ptsPole = getPts(fPole), ptsHook = getPts(fHook), ptsFAT = getPts(fFAT);
+
+                const ptsPole = getPts(fPole);
+                const ptsHook = getPts(fHook);
+                const ptsFAT = getPts(fFAT);
+                const ptsQSpan = getPts(fQSpan);
+
+                // Combine Poles and QSpans for snapping targets
+                const allSnappablePoints = turf.featureCollection([...ptsPole.features, ...ptsQSpan.features]);
 
                 // Get Polygons & Map FAT to Boundary
                 const fBound = findFolder(mainF, "BOUNDARY FAT");
                 let polys = [];
-                // Map untuk menyimpan FAT yang ada di dalam setiap Boundary
-                // Key: BoundaryName, Value: {coord: [lon,lat], name: fatName}
                 let boundaryFatMap = {};
 
-                if (fBound) polys = Array.from(fBound.querySelectorAll(":scope>Placemark")).map(p => {
-                    const c = p.querySelector(":scope>Polygon>outerBoundaryIs>LinearRing>coordinates")?.textContent.trim();
-                    if (!c) return null;
-                    const l = c.split(/\s+/).map(x => x.split(',').map(parseFloat).slice(0, 2));
-                    if (l[0][0] !== l[l.length - 1][0]) l.push(l[0]);
+                if (fBound)
+                    polys = Array.from(fBound.querySelectorAll(":scope>Placemark"))
+                        .map((p) => {
+                            const c = p.querySelector(":scope>Polygon>outerBoundaryIs>LinearRing>coordinates")?.textContent.trim();
+                            if (!c) return null;
+                            const l = c.split(/\s+/).map((x) => x.split(",").map(parseFloat).slice(0, 2));
+                            if (l[0][0] !== l[l.length - 1][0]) l.push(l[0]);
 
-                    const polyName = p.querySelector("name").textContent.trim();
-                    const polyFeature = turf.polygon([l], { name: polyName });
+                            const polyName = p.querySelector("name").textContent.trim();
+                            const polyFeature = turf.polygon([l], { name: polyName });
 
-                    // Cek FAT mana yang ada dalam polygon ini
-                    if (ptsFAT.features.length > 0) {
-                        for (const fatFeature of ptsFAT.features) {
-                            if (turf.booleanPointInPolygon(fatFeature, polyFeature)) {
-                                boundaryFatMap[polyName] = {
-                                    coord: fatFeature.geometry.coordinates,
-                                    name: fatFeature.properties.name
-                                };
-                                break; // Asumsi 1 Boundary 1 FAT
+                            if (ptsFAT.features.length > 0) {
+                                for (const fatFeature of ptsFAT.features) {
+                                    if (turf.booleanPointInPolygon(fatFeature, polyFeature)) {
+                                        boundaryFatMap[polyName] = {
+                                            coord: fatFeature.geometry.coordinates,
+                                            name: fatFeature.properties.name,
+                                        };
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                    }
-
-                    return polyFeature;
-                }).filter(Boolean);
+                            return polyFeature;
+                        })
+                        .filter(Boolean);
 
                 const setMeta = (p, xml) => {
-                    p.querySelector("description")?.remove(); const d = p.querySelector("description"); if (d) d.textContent = "";
-                    p.querySelector("ExtendedData")?.remove(); p.querySelector("Style")?.remove();
-                    let s = p.querySelector("styleUrl"); if (!s) { s = doc.createElement("styleUrl"); p.appendChild(s); } s.textContent = xml.style;
+                    p.querySelector("description")?.remove();
+                    const d = p.querySelector("description");
+                    if (d) d.textContent = "";
+                    p.querySelector("ExtendedData")?.remove();
+                    p.querySelector("Style")?.remove();
+                    let s = p.querySelector("styleUrl");
+                    if (!s) {
+                        s = doc.createElement("styleUrl");
+                        p.appendChild(s);
+                    }
+                    s.textContent = xml.style;
                     p.appendChild(doc.importNode(parser.parseFromString(xml.data, "application/xml").documentElement, true));
                 };
 
-                // 1. POLE
+                // === FITUR BARU: AUTO SNAP CABLE ===
+                // Helper function untuk snapping
+                function snapLineToPoints(lineFeature, pointFeaturesCollection, bufferMeters = 5) {
+                    const originalCoords = lineFeature.geometry.coordinates;
+                    let finalCoords = [];
+
+                    // Loop setiap segmen garis (dari titik A ke titik B)
+                    for (let i = 0; i < originalCoords.length - 1; i++) {
+                        const startCoord = originalCoords[i];
+                        const endCoord = originalCoords[i + 1];
+
+                        // 1. Proses Titik Awal Segmen (Snap ke tiang terdekat)
+                        const startPt = turf.point(startCoord);
+                        const nearestStart = turf.nearestPoint(startPt, pointFeaturesCollection);
+                        const distStart = turf.distance(startPt, nearestStart, { units: 'meters' });
+
+                        let snappedStart = startCoord;
+                        if (distStart <= bufferMeters) {
+                            const nc = nearestStart.geometry.coordinates;
+                            snappedStart = [nc[0], nc[1], 0];
+                        }
+                        // Masukkan titik awal (hanya jika belum ada di akhir array sebelumnya)
+                        if (finalCoords.length === 0) {
+                            finalCoords.push(snappedStart);
+                        } else {
+                            const last = finalCoords[finalCoords.length - 1];
+                            if (last[0] !== snappedStart[0] || last[1] !== snappedStart[1]) {
+                                finalCoords.push(snappedStart);
+                            }
+                        }
+
+                        // 2. SCANNING: Cari QSPAN/Tiang yang "kesenggol" di tengah jalur A ke B
+                        const segmentLine = turf.lineString([startCoord, endCoord]);
+                        const intermediatePoints = [];
+
+                        turf.featureEach(pointFeaturesCollection, (pt) => {
+                            // Hitung jarak titik ke GARIS LINTASAN
+                            const distToLine = turf.pointToLineDistance(pt, segmentLine, { units: 'meters' });
+
+                            if (distToLine <= bufferMeters) {
+                                const ptCoord = pt.geometry.coordinates;
+
+                                // Cek jarak ke Start & End biar nggak duplikat sama titik ujung
+                                const distToStart = turf.distance(pt, turf.point(startCoord), { units: 'meters' });
+                                const distToEnd = turf.distance(pt, turf.point(endCoord), { units: 'meters' });
+
+                                // Jika titik ini ada di tengah-tengah (bukan di ujung vertex)
+                                if (distToStart > 1 && distToEnd > 1) {
+                                    // Hitung lokasi relatif titik di garis (untuk sorting)
+                                    const snappedOnLine = turf.nearestPointOnLine(segmentLine, pt);
+                                    intermediatePoints.push({
+                                        coord: [ptCoord[0], ptCoord[1], 0],
+                                        distFromStart: snappedOnLine.properties.location // Posisi urutan dari A ke B
+                                    });
+                                }
+                            }
+                        });
+
+                        // 3. Urutkan titik tengah berdasarkan jarak dari A ke B (biar rapi)
+                        intermediatePoints.sort((a, b) => a.distFromStart - b.distFromStart);
+
+                        // 4. Masukkan titik tengah (QSPAN/Tiang sisipan)
+                        intermediatePoints.forEach(p => {
+                            finalCoords.push(p.coord);
+                        });
+                    }
+
+                    // 5. Proses Titik Paling Akhir (End dari seluruh garis)
+                    const lastCoord = originalCoords[originalCoords.length - 1];
+                    const lastPt = turf.point(lastCoord);
+                    const nearestEnd = turf.nearestPoint(lastPt, pointFeaturesCollection);
+                    const distEnd = turf.distance(lastPt, nearestEnd, { units: 'meters' });
+
+                    let snappedEnd = lastCoord;
+                    if (distEnd <= bufferMeters) {
+                        const nc = nearestEnd.geometry.coordinates;
+                        snappedEnd = [nc[0], nc[1], 0];
+                    }
+
+                    // Push titik terakhir
+                    const lastFinal = finalCoords[finalCoords.length - 1];
+                    if (lastFinal[0] !== snappedEnd[0] || lastFinal[1] !== snappedEnd[1]) {
+                        finalCoords.push(snappedEnd);
+                    }
+
+                    return finalCoords;
+                }
+
+                // Process Cable Folders
+                const processLines = (folder, folderName) => {
+                    if (!folder) return;
+                    let count = 0;
+                    folder.querySelectorAll(":scope > Placemark").forEach(pm => {
+                        const ls = pm.querySelector("LineString > coordinates");
+                        if (!ls) return;
+
+                        const rawText = ls.textContent.trim();
+                        if (!rawText) return;
+
+                        const rawCoords = rawText.split(/\s+/).map(x => {
+                            const parts = x.split(',');
+                            return [parseFloat(parts[0]), parseFloat(parts[1])];
+                        });
+
+                        if (rawCoords.length < 2) return;
+
+                        const lineFeat = turf.lineString(rawCoords);
+
+                        // Lakukan Snapping jika ada point terdekat
+                        if (allSnappablePoints.features.length > 0) {
+                            const newCoords = snapLineToPoints(lineFeat, allSnappablePoints);
+                            // Update DOM with new Z-axis (0)
+                            ls.textContent = newCoords.map(c => `${c[0]},${c[1]},0`).join(' ');
+                            count++;
+                        }
+                    });
+                    if (count > 0) log('success', `Auto-Snap ${count} jalur di ${folderName} 🔗`);
+                };
+
+                // Jalankan Snapping
+                log('info', 'Merapikan jalur kabel (Snapping)... 📐');
+                processLines(fCable, "CABLE DISTRIBUTION");
+                processLines(fSling, "SLINGWIRE");
+
+                // === END FITUR BARU ===
+
+                // POLE
                 if (fPole) {
-                    log('l-info', "Proses POLE...");
-                    fPole.querySelectorAll(":scope>Placemark").forEach(p => {
+                    log("info", "Memproses data Tiang (POLE)... 🏗️");
+                    fPole.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
-                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(',').map(parseFloat);
-                        setMeta(p, { style: "#pointStyleMap0", data: `<ExtendedData><SchemaData schemaUrl="#S_POLE_SSSSS"><SimpleData name="Pole_ID__New_">${n}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${la.toFixed(6)}</SimpleData><SimpleData name="Coordinate__Long__NEW">${lo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType}</SimpleData></SchemaData></ExtendedData>` });
+                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
+                        setMeta(p, {
+                            style: "#SM_POLE", // UPDATE ID
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_POLE_SSSSS"><SimpleData name="Pole_ID__New_">${n}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${la.toFixed(
+                                6
+                            )}</SimpleData><SimpleData name="Coordinate__Long__NEW">${lo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType
+                                }</SimpleData></SchemaData></ExtendedData>`,
+                        });
                         summary.pole++;
                     });
                 }
 
-                // 2. HOOK
+                // HOOK
                 if (fHook) {
-                    log('l-info', "Proses HOOK...");
-                    fHook.querySelectorAll(":scope>Placemark").forEach(p => {
+                    log("info", "Merapikan data Hook... 🪝");
+                    fHook.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
-                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(',').map(parseFloat);
-                        setMeta(p, { style: "#pointStyleMap", data: `<ExtendedData><SchemaData schemaUrl="#S_HOOK_SSS"><SimpleData name="Clamp_Hook_ID">${n}</SimpleData><SimpleData name="Clamp_Hook_LATITUDE">${la.toFixed(6)}</SimpleData><SimpleData name="Clamp_Hook_LONGITUDE">${lo.toFixed(6)}</SimpleData></SchemaData></ExtendedData>` });
+                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
+                        setMeta(p, {
+                            style: "#SM_HOOK", // UPDATE ID
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_HOOK_SSS"><SimpleData name="Clamp_Hook_ID">${n}</SimpleData><SimpleData name="Clamp_Hook_LATITUDE">${la.toFixed(
+                                6
+                            )}</SimpleData><SimpleData name="Clamp_Hook_LONGITUDE">${lo.toFixed(6)}</SimpleData></SchemaData></ExtendedData>`,
+                        });
                         summary.hook++;
                     });
                 }
 
-                // 3. FDT (SNAP)
+                // FDT
                 if (fFDT && ptsPole.features.length) {
-                    log('l-info', "Proses FDT (Snap)...");
-                    fFDT.querySelectorAll(":scope>Placemark").forEach(p => {
+                    log("info", "Menempelkan FDT ke tiang terdekat... 📍");
+                    fFDT.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
-                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(',').map(parseFloat);
+                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
                         const near = turf.nearestPoint(turf.point([lo, la]), ptsPole);
                         const [plo, pla] = near.geometry.coordinates;
                         p.querySelector("coordinates").textContent = `${plo},${pla},0`;
-                        setMeta(p, { style: "#pointStyleMap1", data: `<ExtendedData><SchemaData schemaUrl="#S_FDT_SSSSSS"><SimpleData name="Pole_ID__New_">${near.properties.name}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${pla.toFixed(6)}</SimpleData><SimpleData name="Coordinate__Long__NEW">${plo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType}</SimpleData><SimpleData name="FAT_ID_NETWORK_ID">${n}</SimpleData></SchemaData></ExtendedData>` });
+                        setMeta(p, {
+                            style: "#SM_FDT", // UPDATE ID
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_FDT_SSSSSS"><SimpleData name="Pole_ID__New_">${near.properties.name}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${pla.toFixed(
+                                6
+                            )}</SimpleData><SimpleData name="Coordinate__Long__NEW">${plo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType
+                                }</SimpleData><SimpleData name="FAT_ID_NETWORK_ID">${n}</SimpleData></SchemaData></ExtendedData>`,
+                        });
                         summary.fdt++;
                     });
                 }
 
-                // 4. FAT (SNAP)
+                // FAT
                 if (fFAT && ptsPole.features.length) {
-                    log('l-info', "Proses FAT (Snap)...");
-                    fFAT.querySelectorAll(":scope>Placemark").forEach(p => {
+                    log("info", "Menempelkan FAT ke tiang terdekat... 📍");
+                    fFAT.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
-                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(',').map(parseFloat);
+                        const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
                         const near = turf.nearestPoint(turf.point([lo, la]), ptsPole);
                         const [plo, pla] = near.geometry.coordinates;
                         p.querySelector("coordinates").textContent = `${plo},${pla},0`;
-                        setMeta(p, { style: "#pointStyleMap3", data: `<ExtendedData><SchemaData schemaUrl="#S_FAT_SSSSSS"><SimpleData name="Pole_ID__New_">${near.properties.name}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${pla.toFixed(6)}</SimpleData><SimpleData name="Coordinate__Long__NEW">${plo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType}</SimpleData><SimpleData name="FAT_ID_NETWORK_ID">${n}</SimpleData></SchemaData></ExtendedData>` });
+                        setMeta(p, {
+                            style: "#SM_FAT", // UPDATE ID
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_FAT_SSSSSS"><SimpleData name="Pole_ID__New_">${near.properties.name}</SimpleData><SimpleData name="Coordinate__Lat__NEW">${pla.toFixed(
+                                6
+                            )}</SimpleData><SimpleData name="Coordinate__Long__NEW">${plo.toFixed(6)}</SimpleData><SimpleData name="Pole_Provider__New_">${data.poleProvider}</SimpleData><SimpleData name="Pole_Type">${data.poleType
+                                }</SimpleData><SimpleData name="FAT_ID_NETWORK_ID">${n}</SimpleData></SchemaData></ExtendedData>`,
+                        });
                         summary.fat++;
                     });
                 }
 
-                // Container for Cable Drops
-                let cableDropsStr = "";
-
-                // 5. HOME & CABLE DROP
+                // HOME
                 if (fHome) {
-                    logHeader("Memproses HOME & CABLE DROP...");
+                    logHeader("Fase Terakhir: HOME & CABLE DROP");
                     const homes = fHome.querySelectorAll(":scope>Placemark");
-
-                    // FIX FDT CODE: Ambil nama dari placemark pertama didalam folder FDT
                     const fdtPlacemark = fFDT ? fFDT.querySelector("Placemark > name") : null;
                     const fdtC = fdtPlacemark ? fdtPlacemark.textContent.trim() : "-";
 
                     let i = 0;
-
                     for (const p of homes) {
-                        i++; summary.home++;
+                        i++;
+                        summary.home++;
                         const n = p.querySelector("name")?.textContent.trim() || "NO_NAME";
                         const cs = p.querySelector("coordinates")?.textContent.trim();
                         if (!cs) continue;
-                        const [lo, la] = cs.split(',').map(parseFloat);
+                        const [lo, la] = cs.split(",").map(parseFloat);
 
-                        // Geocoding
                         let st = { p: "JL.", n: "-" };
-                        if (provider !== 'none') {
-                            log('l-info', `[${i}/${homes.length}] ${n} (Jalan...)`);
+                        if (provider !== "none") {
+                            log("info", `Mencari alamat untuk ${n}... 🔎`);
                             let r = null;
-                            if (provider === 'nominatim') { await sleep(1100); r = await getNominatim(la, lo); }
-                            else if (provider === 'gmaps') r = await getGmaps(la, lo, gKey);
-                            else if (provider === 'mapbox') r = await getMapbox(la, lo, mToken);
-                            if (r) { st = parseRoad(r); summary.h_str++; }
+                            if (provider === "nominatim") {
+                                await sleep(1100);
+                                r = await getNominatim(la, lo);
+                            } else if (provider === "gmaps") r = await getGmaps(la, lo, gKey);
+                            else if (provider === "mapbox") r = await getMapbox(la, lo, mToken);
+                            if (r) {
+                                st = parseRoad(r);
+                                summary.h_str++;
+                            }
                         }
 
-                        // Check Boundary & Auto Create Drop Wire
                         let fc = "-";
                         for (const pl of polys) {
                             if (turf.booleanPointInPolygon(turf.point([lo, la]), pl)) {
                                 fc = pl.properties.name;
                                 summary.h_fat++;
-
-                                // Cek apakah Boundary ini punya FAT terdaftar
                                 if (boundaryFatMap[fc]) {
                                     const fatData = boundaryFatMap[fc];
                                     const dropName = `sndapp.com ${fatData.name} to ${n}`;
-
-                                    // Buat LineString KML untuk Cable Drop (Magenta ff00ffff -> KML AABBGGRR: ffff00ff)
                                     cableDropsStr += `
                                     <Placemark>
                                         <name>${dropName}</name>
-                                        <Style>
-                                            <LineStyle>
-                                                <color>ffff00ff</color>
-                                                <width>1</width>
-                                            </LineStyle>
-                                        </Style>
-                                        <LineString>
-                                            <tessellate>1</tessellate>
-                                            <coordinates>
-                                                ${fatData.coord[0]},${fatData.coord[1]},0 ${lo},${la},0
-                                            </coordinates>
-                                        </LineString>
+                                        <Style><LineStyle><color>ffff00ff</color><width>1</width></LineStyle></Style>
+                                        <LineString><tessellate>1</tessellate><coordinates>${fatData.coord[0]},${fatData.coord[1]},0 ${lo},${la},0</coordinates></LineString>
                                     </Placemark>`;
                                     summary.drops++;
                                 }
@@ -1050,42 +1125,58 @@
                         let hk = "-";
                         if (ptsHook.features.length) {
                             const h = turf.nearestPoint(turf.point([lo, la]), ptsHook);
-                            if (turf.distance(turf.point([lo, la]), h, { units: 'meters' }) <= 35) { hk = h.properties.name; summary.h_hook++; }
+                            if (turf.distance(turf.point([lo, la]), h, { units: "meters" }) <= 35) {
+                                hk = h.properties.name;
+                                summary.h_hook++;
+                            }
                         }
 
-                        const cmt = (hk !== "-") ? data.houseComment : "-";
+                        const cmt = hk !== "-" ? data.houseComment : "-";
 
-                        // Added DEPLOYMENT_TYPE and NEED_SURVEY to Metadata
-                        setMeta(p, { style: "#pointStyleMapHOME", data: `<ExtendedData><SchemaData schemaUrl="#S_HOME_SCHEMA"><SimpleData name="HOMEPASS_ID">-</SimpleData><SimpleData name="CLUSTER_NAME">${data.clusterName}</SimpleData><SimpleData name="PREFIX_ADDRESS">${st.p}</SimpleData><SimpleData name="STREET_NAME">${st.n}</SimpleData><SimpleData name="HOUSE_NUMBER">${n}</SimpleData><SimpleData name="BLOCK">-</SimpleData><SimpleData name="FLOOR">-</SimpleData><SimpleData name="RT">-</SimpleData><SimpleData name="RW">-</SimpleData><SimpleData name="DISTRICT">${data.district}</SimpleData><SimpleData name="SUB_DISTRICT">${data.subDistrict}</SimpleData><SimpleData name="FDT_CODE">${fdtC}</SimpleData><SimpleData name="FAT_CODE">${fc}</SimpleData><SimpleData name="BUILDING_LATITUDE">${la.toFixed(6)}</SimpleData><SimpleData name="BUILDING_LONGITUDE">${lo.toFixed(6)}</SimpleData><SimpleData name="Category_BizPass">${data.categoryBizPass}</SimpleData><SimpleData name="POST_CODE">${data.postCode}</SimpleData><SimpleData name="ADDRESS_POLE___FAT">-</SimpleData><SimpleData name="OV_UG">${data.ovUg}</SimpleData><SimpleData name="HOUSE_COMMENT_">${cmt}</SimpleData><SimpleData name="BUILDING_NAME">-</SimpleData><SimpleData name="TOWER">-</SimpleData><SimpleData name="APTN">-</SimpleData><SimpleData name="FIBER_NODE__HFC_">-</SimpleData><SimpleData name="ID_Area">${data.idArea}</SimpleData><SimpleData name="Clamp_Hook_ID">${hk}</SimpleData><SimpleData name="DEPLOYMENT_TYPE">${data.deploymentType}</SimpleData><SimpleData name="NEED_SURVEY">${data.needSurvey}</SimpleData></SchemaData></ExtendedData>` });
+                        // === UPDATE FOR NEW XML STYLE ===
+                        setMeta(p, {
+                            style: "#SM_HOME", // UPDATE ID
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS"><SimpleData name="HOMEPASS_ID">-</SimpleData><SimpleData name="CLUSTER_NAME">${data.clusterName}</SimpleData><SimpleData name="PREFIX_ADDRESS">${st.p
+                                }</SimpleData><SimpleData name="STREET_NAME">${st.n
+                                }</SimpleData><SimpleData name="HOUSE_NUMBER">${n}</SimpleData><SimpleData name="BLOCK">-</SimpleData><SimpleData name="FLOOR">-</SimpleData><SimpleData name="RT">-</SimpleData><SimpleData name="RW">-</SimpleData><SimpleData name="DISTRICT">${data.district
+                                }</SimpleData><SimpleData name="SUB_DISTRICT">${data.subDistrict}</SimpleData><SimpleData name="FDT_CODE">${fdtC}</SimpleData><SimpleData name="FAT_CODE">${fc}</SimpleData><SimpleData name="BUILDING_LATITUDE">${la.toFixed(
+                                    6
+                                )}</SimpleData><SimpleData name="BUILDING_LONGITUDE">${lo.toFixed(6)}</SimpleData><SimpleData name="Category_BizPass">${data.categoryBizPass}</SimpleData><SimpleData name="POST_CODE">${data.postCode
+                                }</SimpleData><SimpleData name="ADDRESS_POLE___FAT">-</SimpleData><SimpleData name="OV_UG">${data.ovUg
+                                }</SimpleData><SimpleData name="HOUSE_COMMENT_">${cmt}</SimpleData><SimpleData name="BUILDING_NAME">-</SimpleData><SimpleData name="TOWER">-</SimpleData><SimpleData name="APTN">-</SimpleData><SimpleData name="FIBER_NODE__HFC_">-</SimpleData><SimpleData name="ID_Area">${data.idArea
+                                }</SimpleData><SimpleData name="Clamp_Hook_ID">${hk}</SimpleData><SimpleData name="DEPLOYMENT_TYPE">${data.deploymentType}</SimpleData><SimpleData name="NEED_SURVEY">${data.needSurvey
+                                }</SimpleData></SchemaData></ExtendedData>`,
+                        });
                     }
                 }
 
-                // Insert Cable Drop Folder if exists
                 if (summary.drops > 0) {
-                    log('l-info', `Menambahkan ${summary.drops} Cable Drops...`);
+                    log("success", `Berhasil membuat ${summary.drops} jalur kabel otomatis! 🧶`);
                     const dropFolderNode = parser.parseFromString(`<Folder><name>CABLE DROP</name>${cableDropsStr}</Folder>`, "application/xml").documentElement;
                     mainF.appendChild(doc.importNode(dropFolderNode, true));
                 }
 
-                // Output
+                // === CLEAN EXPORT (FIX LARGE SIZE) ===
+                log("info", "Membersihkan file & Re-packing...");
                 const ser = new XMLSerializer();
-                zip.file(kmlFileEntry.name, ser.serializeToString(doc));
-                const out = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+                const outZip = new JSZip(); // Create FRESH zip
+                outZip.file("doc.kml", ser.serializeToString(doc)); // Only add doc.kml
+                const out = await outZip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 9 } });
+
                 downloadLink.href = URL.createObjectURL(out);
-                downloadLink.download = `processed_v1.4_${originalKmzFile.name}`;
-                downloadLink.style.display = 'flex';
+                downloadLink.download = `cleaned_${originalKmzFile.name}`;
+                downloadLink.style.display = "flex";
 
-                log('l-success', "SELESAI SEMUA!");
-                logHeader("Laporan:");
-                log('l-info', `POLE:${summary.pole} | FDT:${summary.fdt} | FAT:${summary.fat}`);
-                log('l-info', `HOME:${summary.home} (Jalan:${summary.h_str}, FAT:${summary.h_fat}, Hook:${summary.h_hook})`);
-                log('l-success', `CABLE DROP Generated: ${summary.drops}`);
-
+                log("success", "Misi Selesai! File bersih & ringan 🎉");
+                logHeader("Laporan Akhir");
+                log("info", `POLE: ${summary.pole} | FDT: ${summary.fdt} | FAT: ${summary.fat}`);
+                log("info", `HOME: ${summary.home} (Jalan: ${summary.h_str}, FAT: ${summary.h_fat}, Hook: ${summary.h_hook})`);
+                log("success", `Total Cable Drop: ${summary.drops}`);
             } catch (e) {
-                log('l-err', e.message);
+                log("l-err", "Ups! Ada kesalahan: " + e.message);
                 console.error(e);
             } finally {
-                processBtn.classList.remove('processing');
+                processBtn.classList.remove("processing");
                 processBtn.disabled = false;
             }
         });

@@ -4,198 +4,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Converter Pro - SND App</title>
+    <title>Universal Converter - SND App</title>
 
+    <!-- Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
+    <!-- Global Style -->
+    <link rel="stylesheet" href="main.css">
+
     <style>
-        /* === TEMA (Konsisten) === */
+        /* === DASHBOARD LAYOUT === */
         :root {
-            --bg-color: #ffffff;
-            --container-color: #f8fafc;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --input-bg: #ffffff;
-            --primary-color: #2563eb;
-            --primary-text: #ffffff;
-            --success-color: #16a34a;
-            --drag-active: #eff6ff;
-            --hover-bg: #f1f5f9;
-            --warn-color: #d97706;
+            --bg-color: #F5F5F7;
         }
 
         :root[data-theme="dark"] {
-            --bg-color: #020817;
-            --container-color: #0f172a;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #1e293b;
-            --primary-color: #3b82f6;
-            --primary-text: #ffffff;
-            --success-color: #22c55e;
-            --drag-active: #1e3a8a;
-            --hover-bg: #1e293b;
-            --warn-color: #f59e0b;
+            --bg-color: #000000;
         }
 
-        * {
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 3fr 1.2fr;
+            gap: 1.5rem;
+            height: 100%;
+            padding: 100px 1.5rem 1.5rem 1.5rem;
             box-sizing: border-box;
         }
 
-        body {
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
-        }
-
-        .app-container {
+        /* LEFT PANEL */
+        .workspace-panel {
             display: flex;
             flex-direction: column;
-            height: 100%;
-        }
-
-        /* Header */
-        .app-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-color);
-            flex-shrink: 0;
-        }
-
-        .app-header h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--text-color);
-            font-weight: 700;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin-right: 1rem;
-        }
-
-        .icon-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            padding: 0.5rem;
-            border-radius: 6px;
-            color: var(--text-color);
-            cursor: pointer;
-        }
-
-        [data-theme="dark"] .icon-sun {
-            display: none;
-        }
-
-        [data-theme="light"] .icon-moon {
-            display: none;
-        }
-
-        /* Layout */
-        .app-body {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 340px;
-            border-right: 1px solid var(--border-color);
-            background: var(--container-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-section {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0;
-        }
-
-        .toggle-icon {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            transition: transform 0.2s;
-        }
-
-        .sidebar-section.collapsed .section-content {
-            display: none;
-        }
-
-        .sidebar-section.collapsed .toggle-icon {
-            transform: rotate(-90deg);
-        }
-
-        .sidebar-section.collapsed {
-            padding-bottom: 0.5rem;
-        }
-
-        /* Tree Section */
-        #sectionTree {
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border-bottom: none;
-        }
-
-        .tree-scroll-area {
-            flex: 1;
+            gap: 1.5rem;
             overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--input-bg);
-            padding: 10px;
+            padding-right: 8px;
+            padding-bottom: 2rem;
         }
 
-        /* Upload Zone */
-        .upload-zone {
+        .workspace-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .workspace-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .workspace-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .tool-header-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .tool-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .version-badge {
+            font-size: 0.75rem;
+            background: var(--accent-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card-dashboard {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Grid Layout untuk Input */
+        .split-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Upload Area */
+        .upload-compact {
             border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 16px;
+            padding: 2rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            background: rgba(0, 122, 255, 0.02);
+            transition: 0.2s;
             position: relative;
-            background: var(--input-bg);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .upload-zone:hover,
-        .upload-zone.active {
+        .upload-compact:hover {
             border-color: var(--primary-color);
-            background: var(--drag-active);
+            transform: scale(1.01);
+            background: rgba(0, 122, 255, 0.05);
         }
 
         #fileInput {
@@ -208,79 +152,14 @@
             cursor: pointer;
         }
 
-        /* Tree Items */
-        .tree-ul {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
-
-        .tree-ul .tree-ul {
-            padding-left: 1.2rem;
-        }
-
-        .tree-item {
-            margin-bottom: 2px;
-        }
-
-        .tree-content {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 6px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .tree-content:hover {
-            background: var(--hover-bg);
-        }
-
-        .tree-toggle {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            width: 10px;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .tree-label {
-            font-size: 0.9rem;
-            color: var(--text-color);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .item-count {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-left: 5px;
-        }
-
-        .tree-children {
-            display: none;
-        }
-
-        .tree-children.open {
-            display: block;
-        }
-
-        input[type="checkbox"] {
-            accent-color: var(--primary-color);
-            cursor: pointer;
-            margin: 0;
-        }
-
         /* Export Options */
         .option-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            background: var(--input-bg);
-            padding: 10px;
-            border-radius: 8px;
+            gap: 10px;
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
         }
 
@@ -299,254 +178,374 @@
             margin-top: 10px;
         }
 
-        .format-btn {
+        .fmt-btn {
             flex: 1;
-            padding: 0.5rem;
+            padding: 8px;
             border: 1px solid var(--border-color);
-            background: var(--input-bg);
+            background: var(--card-bg);
             color: var(--text-color);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             font-size: 0.8rem;
             transition: 0.2s;
         }
 
-        .format-btn.active {
+        .fmt-btn.active {
             background: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
         }
 
-        .btn-process {
-            width: 100%;
-            padding: 0.8rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 1rem;
-            margin-top: 1rem;
-        }
-
-        .btn-process:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background: var(--text-muted);
-        }
-
-        /* Preview Area */
-        .preview-area {
-            flex: 1;
-            padding: 1.5rem;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+        /* Tree View Custom */
+        .tree-container-box {
+            max-height: 300px;
+            overflow-y: auto;
             background: var(--bg-color);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
         }
 
-        .table-wrapper {
-            flex: 1;
+        .tree-item {
+            margin-bottom: 4px;
+        }
+
+        .tree-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .tree-content:hover {
+            background: var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .tree-toggle {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            width: 15px;
+            text-align: center;
+        }
+
+        .tree-children {
+            padding-left: 1.2rem;
+            display: none;
+        }
+
+        .tree-children.open {
+            display: block;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Table Preview */
+        .table-box {
+            max-height: 400px;
             overflow: auto;
+            background: var(--bg-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--input-bg);
+            border-radius: 12px;
             position: relative;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
             white-space: nowrap;
+            font-size: 0.8rem;
         }
 
         th {
-            background: var(--container-color);
             position: sticky;
             top: 0;
-            z-index: 10;
+            background: var(--card-bg);
+            padding: 10px;
             text-align: left;
-            padding: 10px 12px;
             border-bottom: 2px solid var(--border-color);
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
+            z-index: 10;
         }
 
         td {
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-color);
         }
 
         tr:hover td {
-            background: var(--hover-bg);
+            background: rgba(0, 0, 0, 0.02);
         }
 
-        .empty-state {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--text-muted);
-            text-align: center;
+        /* RIGHT PANEL */
+        .monitor-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            height: 100%;
         }
 
-        .status-bar {
-            padding-top: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        .monitor-header {
+            background: var(--accent-bg);
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-            justify-content: center;
             align-items: center;
-            color: white;
-            font-weight: 600;
+        }
+
+        .monitor-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #34C759;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34C759;
+            animation: pulse 2s infinite;
+        }
+
+        .monitor-log-area {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            background: var(--bg-color);
         }
 
-        .watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 15px;
-            font-size: 11px;
+        .monitor-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--card-bg);
+        }
+
+        /* Log Bubbles */
+        .log-bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            border-bottom-left-radius: 2px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1.4;
+            font-size: 0.8rem;
+        }
+
+        .log-time {
+            font-size: 0.65rem;
             color: var(--text-muted);
-            opacity: 0.4;
-            pointer-events: none;
+            margin-bottom: 2px;
+            display: block;
+            opacity: 0.7;
         }
 
-        @media (max-width: 768px) {
-            .app-body {
-                flex-direction: column;
+        /* Animations */
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.9);
             }
 
-            .sidebar {
-                width: 100%;
-                height: 60%;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
             }
 
-            .preview-area {
-                height: 40%;
+            50% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.6s;
+        }
+
+        /* Loading Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .processing .spinner {
+            display: block;
+        }
+
+        .processing span {
+            display: none;
+        }
+
+        @media (max-width: 1100px) {
+            .split-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: auto;
+                padding-top: 90px;
+            }
+
+            .workspace-panel {
+                overflow: visible;
+                padding-bottom: 0;
+            }
+
+            .monitor-panel {
+                height: 400px;
+                margin-bottom: 2rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div style="display:flex; align-items:center;">
-                <a href="index.html" class="back-btn">← Kembali</a>
-                <h1>Universal Converter <span
-                        style="font-size:0.7em; opacity:0.7; font-weight:400; margin-left:5px;">v2.3</span></h1>
+    <!-- Header via Script Global -->
+
+    <div class="dashboard-container">
+
+        <!-- === WORKSPACE (KIRI) === -->
+        <div class="workspace-panel animate-up">
+
+            <!-- Header -->
+            <div class="tool-header-mini">
+                <div>
+                    <h1 class="tool-title">Universal Converter</h1>
+                    <p class="tool-desc">Konversi KML/KMZ ke Excel, CSV, atau GeoJSON</p>
+                </div>
+                <div class="version-badge">v2.3 Pro</div>
             </div>
-            <button class="icon-btn" id="themeToggle">
-                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
-        </header>
 
-        <div class="app-body">
-            <div class="sidebar">
-                <div class="sidebar-section" id="sectionUpload">
-                    <div class="section-header" onclick="toggleSection('sectionUpload')">
-                        <h3 class="section-title">1. Input File</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="upload-zone" id="dropZone">
-                            <p><b>Klik / Drag</b> KMZ atau KML</p>
-                            <div id="fileName"
-                                style="font-size:0.8rem; margin-top:5px; color:var(--primary-color); word-break:break-all;">
-                            </div>
-                            <input type="file" id="fileInput" accept=".kmz, .kml">
-                        </div>
+            <!-- SECTION 1: INPUT & CONFIG -->
+            <div class="split-grid">
+                <!-- Upload -->
+                <div class="card-dashboard animate-up delay-1">
+                    <div class="section-label">1. Input File</div>
+                    <div class="upload-compact" id="dropZone">
+                        <div style="font-size: 2.5rem; margin-bottom: 5px;">📂</div>
+                        <p style="color:var(--text-muted); margin:0;">Drop <strong>.KMZ / .KML</strong></p>
+                        <span id="fileNameDisplay"
+                            style="display:block; margin-top:8px; font-weight:700; color:var(--primary-color); font-size:0.85rem;"></span>
+                        <input type="file" id="fileInput" accept=".kmz, .kml">
                     </div>
                 </div>
 
-                <div class="sidebar-section" id="sectionTree">
-                    <div class="section-header" style="cursor: default;">
-                        <h3 class="section-title">2. Pilih Folder (Tree)</h3>
-                        <span style="font-size:0.7rem; cursor:pointer; color:var(--primary-color);"
-                            onclick="toggleAllCheckboxes(true)">All</span>
+                <!-- Options -->
+                <div class="card-dashboard animate-up delay-1">
+                    <div class="section-label">2. Opsi Export</div>
+                    <div class="option-group">
+                        <label class="radio-label"><input type="radio" name="exportMode" value="merge"
+                                checked><span><b>Merge All:</b> Gabung 1 File</span></label>
+                        <label class="radio-label"><input type="radio" name="exportMode" value="split"><span><b>Split
+                                    Folder:</b> Pisah per Folder (ZIP)</span></label>
                     </div>
-                    <div class="tree-scroll-area" id="treeContainer">
-                        <div
-                            style="padding:10px; color:var(--text-muted); text-align:center; font-size:0.9rem; padding-top: 20px;">
-                            Belum ada file.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-section" id="sectionExport" style="border-bottom: none;">
-                    <div class="section-header" onclick="toggleSection('sectionExport')">
-                        <h3 class="section-title">3. Export Options</h3>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="option-group">
-                            <label class="radio-label"><input type="radio" name="exportMode" value="merge"
-                                    checked><span><b>Merge All:</b> Gabung 1 Sheet/File</span></label>
-                            <label class="radio-label"><input type="radio" name="exportMode"
-                                    value="split"><span><b>Split Folder:</b> Pisah Sheet/ZIP</span></label>
-                        </div>
-
-                        <div class="format-selector">
-                            <button class="format-btn active" onclick="setFormat('xlsx')">Excel</button>
-                            <button class="format-btn" onclick="setFormat('csv')">CSV</button>
-                            <button class="format-btn" onclick="setFormat('geojson')">GeoJSON</button>
-                        </div>
-                        <button id="btnConvert" class="btn-process" disabled>Download Data</button>
+                    <div class="section-label" style="margin-top:1rem; margin-bottom:0.5rem;">Format Output</div>
+                    <div class="format-selector">
+                        <button class="fmt-btn active" onclick="setFormat('xlsx')">Excel</button>
+                        <button class="fmt-btn" onclick="setFormat('csv')">CSV</button>
+                        <button class="fmt-btn" onclick="setFormat('geojson')">GeoJSON</button>
                     </div>
                 </div>
             </div>
 
-            <div class="preview-area">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                    <h2 style="margin:0; font-size:1.1rem; color:var(--text-color); border:none;">Data Preview</h2>
+            <!-- SECTION 2: FOLDER TREE -->
+            <div class="card-dashboard animate-up delay-2">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <div class="section-label" style="margin:0;">3. Pilih Folder (Tree)</div>
+                    <button onclick="toggleAllCheckboxes(true)"
+                        style="background:none; border:none; color:var(--primary-color); font-size:0.8rem; cursor:pointer; font-weight:600;">Select
+                        All</button>
                 </div>
+                <div class="tree-container-box" id="treeContainer">
+                    <div style="text-align:center; color:var(--text-muted); padding:2rem;">
+                        Belum ada file yang dimuat.
+                    </div>
+                </div>
+            </div>
 
-                <div class="table-wrapper">
-                    <div id="emptyState" class="empty-state">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1" style="margin-bottom:10px; opacity:0.5;">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="12" y1="18" x2="12" y2="12" />
-                            <line x1="9" y1="15" x2="15" y2="15" />
-                        </svg>
-                        <br>Preview data (Max 50 baris)
+            <!-- SECTION 3: PREVIEW -->
+            <div class="card-dashboard animate-up delay-3">
+                <div class="section-label">4. Data Preview (Max 50 Rows)</div>
+                <div class="table-box">
+                    <div id="emptyState" style="padding:3rem; text-align:center; color:var(--text-muted);">
+                        <div style="font-size:2rem; margin-bottom:10px; opacity:0.5;">👀</div>
+                        <p>Upload file untuk melihat preview data</p>
                     </div>
                     <table id="previewTable" style="display:none;">
                         <thead>
@@ -555,73 +554,108 @@
                         <tbody id="tableBody"></tbody>
                     </table>
                 </div>
-
-                <div class="status-bar">
-                    <span id="statusText">Menunggu input...</span>
-                    <span id="rowCount"></span>
+                <div
+                    style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
+                    <span id="statusText">Ready.</span>
+                    <span id="rowCount">0 items</span>
                 </div>
             </div>
+
         </div>
+
+        <!-- === MONITOR (KANAN) === -->
+        <aside class="monitor-panel animate-up" style="animation-delay: 0.2s;">
+            <div class="monitor-header">
+                <div class="monitor-title">
+                    <div class="pulse-dot"></div> Ruang Kendali 🚀
+                </div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">LIVE</div>
+            </div>
+
+            <div class="monitor-log-area" id="log">
+                <div style="text-align:center; color:var(--text-muted); margin-top:50%;">
+                    <div style="font-size:2rem; margin-bottom:10px; opacity:0.5;">📡</div>
+                    <p style="font-size:0.85rem;">Menunggu file...</p>
+                </div>
+            </div>
+
+            <div class="monitor-footer">
+                <button id="btnConvert" class="btn-action btn-primary" style="width:100%;" disabled>
+                    <span class="spinner"></span>
+                    <span>Mulai Konversi</span>
+                </button>
+            </div>
+        </aside>
+
     </div>
 
-    <div class="loading-overlay" id="loadingOverlay">
-        <div>Memproses Data...</div>
-    </div>
+    <!-- Global Script -->
+    <script src="script.js"></script>
 
-    <div class="watermark">by FadliGr</div>
-
+    <!-- Internal Logic -->
     <script>
-        // === 1. SYSTEM & THEME ===
-        const root = document.documentElement;
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        root.dataset.theme = savedTheme;
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-            root.dataset.theme = next;
-            localStorage.setItem('theme', next);
-        });
-
-        // === 2. GLOBAL STATE ===
-        let globalDataMap = new Map(); // Stores folderID -> Array of Placemark Data
+        // Global State
+        let globalDataMap = new Map();
         let folderTree = null;
         let selectedFormat = 'xlsx';
         let originalFileName = "data";
 
-        // === 3. DOM ELEMENTS ===
+        // DOM Elements
         const fileInput = document.getElementById('fileInput');
         const treeContainer = document.getElementById('treeContainer');
         const btnConvert = document.getElementById('btnConvert');
         const statusText = document.getElementById('statusText');
         const dropZone = document.getElementById('dropZone');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-
-        // === 4. EVENT LISTENERS ===
-        function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
+        const logEl = document.getElementById('log');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
 
         function setFormat(fmt) {
             selectedFormat = fmt;
-            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
+            log('info', `Format output diubah ke: <strong>${fmt.toUpperCase()}</strong>`);
         }
 
         function toggleAllCheckboxes(checked) {
             document.querySelectorAll('.tree-checkbox').forEach(cb => cb.checked = checked);
             updatePreview();
+            log('info', checked ? 'Memilih semua folder' : 'Membatalkan semua pilihan');
         }
 
+        // Drag & Drop
         dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
-        dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('active'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
         fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
         btnConvert.addEventListener('click', processExport);
 
-        // === 5. FILE PROCESSING ===
+        // Fun Log System
+        function log(type, m) {
+            if (logEl.innerText.includes("Menunggu file")) logEl.innerHTML = '';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const d = document.createElement('div');
+            d.className = `log-bubble`; // Default info style
+            if (type === 'success') d.style.borderLeft = "3px solid var(--success-color)";
+            if (type === 'error') d.style.borderLeft = "3px solid var(--error-color)";
+
+            d.innerHTML = `<span class="log-time">${time}</span>${m}`;
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
         async function handleFile(file) {
             if (!file.name.match(/\.(kmz|kml)$/i)) return alert("Format salah! Harap upload KMZ atau KML.");
 
-            document.getElementById('fileName').textContent = file.name;
+            fileNameDisplay.textContent = file.name;
             originalFileName = file.name.replace(/\.[^/.]+$/, "");
-            showLoading(true);
+
+            log('info', `Membaca file: <strong>${file.name}</strong>... 📖`);
+
+            // Artificial Delay for smoothness
+            await new Promise(r => setTimeout(r, 500));
 
             try {
                 let xmlStr = "";
@@ -634,38 +668,32 @@
                     xmlStr = await file.text();
                 }
 
+                log('info', 'Parsing struktur XML... ⚙️');
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlStr, "application/xml");
 
-                // Reset State
                 globalDataMap.clear();
-
-                // Build Tree & Extract Data simultaneously
                 const rootEl = xmlDoc.querySelector("Document") || xmlDoc.querySelector("kml");
                 folderTree = parseRecursive(rootEl, "Root");
 
                 renderTree(folderTree);
-                document.getElementById('sectionUpload').classList.add('collapsed');
                 updatePreview();
+
                 btnConvert.disabled = false;
-                statusText.textContent = "File dimuat.";
+                statusText.textContent = "Siap untuk konversi.";
+                log('success', 'File berhasil dimuat! Silakan pilih folder.');
 
             } catch (e) {
+                log('error', "Error: " + e.message);
                 alert("Error: " + e.message);
-                statusText.textContent = "Gagal.";
-            } finally {
-                showLoading(false);
             }
         }
 
-        // === 6. CORE LOGIC: PARSE & EXTRACT ===
         function parseRecursive(xmlNode, path) {
             const folderId = Math.random().toString(36).substr(2, 9);
             const folderName = xmlNode.nodeName === "#document" ? "Root" : (xmlNode.querySelector(":scope > name")?.textContent.trim() || "Folder");
-
             let placemarksData = [];
             let subfolders = [];
-
             for (let child of xmlNode.children) {
                 if (child.nodeName === "Placemark") {
                     placemarksData.push(extractPlacemarkData(child, path, folderName));
@@ -674,54 +702,25 @@
                     subfolders.push(parseRecursive(child, path + "/" + subName));
                 }
             }
-
-            // Store data in global map if not empty
-            if (placemarksData.length > 0) {
-                globalDataMap.set(folderId, placemarksData);
-            }
-
-            return {
-                id: folderId,
-                name: folderName,
-                count: placemarksData.length,
-                children: subfolders,
-                path: path
-            };
+            if (placemarksData.length > 0) globalDataMap.set(folderId, placemarksData);
+            return { id: folderId, name: folderName, count: placemarksData.length, children: subfolders, path: path };
         }
 
         function extractPlacemarkData(pm, path, folderName) {
-            let data = {
-                'Folder': folderName,
-                'Path': path,
-                'Name': pm.querySelector(":scope > name")?.textContent.trim() || ""
-            };
-
-            // Coords
+            let data = { 'Folder': folderName, 'Path': path, 'Name': pm.querySelector(":scope > name")?.textContent.trim() || "" };
             const coords = pm.querySelector("coordinates")?.textContent.trim();
             if (coords) {
                 const p = coords.split(/\s+/)[0].split(',');
-                data['Longitude'] = p[0];
-                data['Latitude'] = p[1];
+                data['Longitude'] = p[0]; data['Latitude'] = p[1];
             }
-
-            // SimpleData
-            pm.querySelectorAll("SimpleData").forEach(sd => {
-                data[sd.getAttribute("name")] = sd.textContent.trim();
-            });
-
-            // ExtendedData > Data
+            pm.querySelectorAll("SimpleData").forEach(sd => data[sd.getAttribute("name")] = sd.textContent.trim());
             pm.querySelectorAll("Data").forEach(d => {
                 const v = d.querySelector("value")?.textContent.trim();
                 if (v) data[d.getAttribute("name")] = v;
             });
-
-            // Description (Optional, remove if too heavy)
-            // data['Description'] = pm.querySelector("description")?.textContent.trim() || "";
-
             return data;
         }
 
-        // === 7. UI RENDERING ===
         function renderTree(node) {
             treeContainer.innerHTML = "";
             const ul = document.createElement('ul');
@@ -731,76 +730,42 @@
         }
 
         function buildTreeItem(node) {
-            // Skip rendering if folder and all subfolders are empty
             const totalItems = node.count + countRecursive(node);
             if (totalItems === 0) return document.createElement('span');
+            const li = document.createElement('li'); li.className = "tree-item";
+            const div = document.createElement('div'); div.className = "tree-content";
+            const cb = document.createElement('input'); cb.type = "checkbox"; cb.className = "tree-checkbox"; cb.checked = true; cb.dataset.id = node.id;
 
-            const li = document.createElement('li');
-            li.className = "tree-item";
-
-            const div = document.createElement('div');
-            div.className = "tree-content";
-
-            // Checkbox
-            const cb = document.createElement('input');
-            cb.type = "checkbox";
-            cb.className = "tree-checkbox";
-            cb.checked = true;
-            cb.dataset.id = node.id; // This ID links to globalDataMap
             cb.addEventListener('change', (e) => {
-                // Check/Uncheck children visually
-                li.querySelectorAll('.tree-checkbox').forEach(c => c.checked = e.target.checked);
+                li.querySelectorAll('input').forEach(c => c.checked = e.target.checked);
                 updatePreview();
             });
 
-            // Toggle
-            const toggle = document.createElement('span');
-            toggle.className = "tree-toggle";
-            toggle.textContent = node.children.length > 0 ? "▶" : "•";
+            const toggle = document.createElement('span'); toggle.className = "tree-toggle"; toggle.textContent = node.children.length > 0 ? "▶" : "•";
+            const label = document.createElement('span'); label.className = "tree-label"; label.textContent = `${node.name} (${node.count})`;
 
-            // Label
-            const label = document.createElement('span');
-            label.className = "tree-label";
-            label.textContent = `${node.name} (${node.count})`;
-
-            div.append(toggle, cb, label);
-            li.appendChild(div);
+            div.append(toggle, cb, label); li.appendChild(div);
 
             if (node.children.length > 0) {
-                const subUl = document.createElement('ul');
-                subUl.className = "tree-ul tree-children";
+                const subUl = document.createElement('ul'); subUl.className = "tree-children";
                 node.children.forEach(child => subUl.appendChild(buildTreeItem(child)));
                 li.appendChild(subUl);
-
-                // Auto expand root
-                if (node.path === "Root") {
-                    subUl.classList.add('open');
-                    toggle.textContent = "▼";
-                }
-
+                if (node.path === "Root") { subUl.classList.add('open'); toggle.textContent = "▼"; }
                 toggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    subUl.classList.toggle('open');
+                    e.stopPropagation(); subUl.classList.toggle('open');
                     toggle.textContent = subUl.classList.contains('open') ? "▼" : "▶";
                 });
             }
-
             return li;
         }
 
-        function countRecursive(node) {
-            return node.children.reduce((acc, child) => acc + child.count + countRecursive(child), 0);
-        }
+        function countRecursive(node) { return node.children.reduce((acc, child) => acc + child.count + countRecursive(child), 0); }
 
-        // === 8. PREVIEW & GATHER DATA ===
         let debounce;
         function updatePreview() {
             clearTimeout(debounce);
             debounce = setTimeout(() => {
-                // Gather data based on checked IDs
                 const checkedIds = Array.from(document.querySelectorAll('.tree-checkbox:checked')).map(cb => cb.dataset.id);
-
-                // Flatten all selected data
                 let previewData = [];
                 let totalCount = 0;
 
@@ -808,12 +773,9 @@
                     if (globalDataMap.has(id)) {
                         const items = globalDataMap.get(id);
                         totalCount += items.length;
-                        if (previewData.length < 50) { // Only keep first 50 for preview
-                            previewData.push(...items);
-                        }
+                        if (previewData.length < 50) previewData.push(...items);
                     }
                 });
-                previewData = previewData.slice(0, 50);
 
                 const tbody = document.getElementById('tableBody');
                 const thead = document.getElementById('tableHead');
@@ -828,45 +790,36 @@
 
                 empty.style.display = 'none'; table.style.display = 'table';
 
-                // Dynamic Columns
                 let colSet = new Set(['Folder', 'Name', 'Longitude', 'Latitude']);
                 previewData.forEach(row => Object.keys(row).forEach(k => colSet.add(k)));
                 const cols = Array.from(colSet);
-
                 thead.innerHTML = cols.map(c => `<th>${c}</th>`).join('');
-                tbody.innerHTML = previewData.map(row => `<tr>${cols.map(c => `<td>${row[c] || ''}</td>`).join('')}</tr>`).join('');
-
+                tbody.innerHTML = previewData.slice(0, 50).map(row => `<tr>${cols.map(c => `<td>${row[c] || ''}</td>`).join('')}</tr>`).join('');
                 document.getElementById('rowCount').textContent = `${totalCount} items selected`;
             }, 100);
         }
 
-        // === 9. EXPORT ===
         async function processExport() {
             const mode = document.querySelector('input[name="exportMode"]:checked').value;
             const checkedIds = Array.from(document.querySelectorAll('.tree-checkbox:checked')).map(cb => cb.dataset.id);
 
-            // Filter map based on selection
-            let selectedGroups = [];
-            checkedIds.forEach(id => {
-                if (globalDataMap.has(id)) {
-                    // Find folder name from tree (simplified search for display)
-                    // For efficiency, the data items already have 'Folder' property
-                    selectedGroups.push({
-                        id: id,
-                        items: globalDataMap.get(id)
-                    });
-                }
-            });
+            if (checkedIds.length === 0) return alert("Pilih data dulu!");
 
-            if (selectedGroups.length === 0) return alert("Tidak ada data yang dipilih!");
+            btnConvert.disabled = true;
+            btnConvert.innerHTML = `<span class="spinner"></span> Memproses...`;
+            log('info', 'Memulai proses export... ⏳');
 
-            showLoading(true);
-            await new Promise(r => setTimeout(r, 200)); // UI paint
+            // Artificial Delay
+            await new Promise(r => setTimeout(r, 800));
 
             try {
+                let selectedGroups = [];
+                checkedIds.forEach(id => {
+                    if (globalDataMap.has(id)) selectedGroups.push({ id: id, items: globalDataMap.get(id) });
+                });
+
                 if (selectedFormat === 'xlsx') {
                     const wb = XLSX.utils.book_new();
-
                     if (mode === 'merge') {
                         const allItems = selectedGroups.flatMap(g => g.items);
                         const ws = XLSX.utils.json_to_sheet(allItems);
@@ -875,15 +828,13 @@
                         selectedGroups.forEach(g => {
                             if (g.items.length === 0) return;
                             let name = g.items[0].Folder.replace(/[\\/?*[\]]/g, "").substring(0, 30) || "Sheet";
-                            // Unique name check
                             if (wb.SheetNames.includes(name)) name += "_" + g.id.substring(0, 3);
                             const ws = XLSX.utils.json_to_sheet(g.items);
                             XLSX.utils.book_append_sheet(wb, ws, name);
                         });
                     }
                     XLSX.writeFile(wb, `${originalFileName}.xlsx`);
-                }
-                else {
+                } else {
                     const zip = new JSZip();
                     if (mode === 'merge') {
                         const allItems = selectedGroups.flatMap(g => g.items);
@@ -895,7 +846,6 @@
                             saveSingleFile(JSON.stringify({ type: "FeatureCollection", features }, null, 2), 'geojson');
                         }
                     } else {
-                        // Split -> ZIP
                         selectedGroups.forEach(g => {
                             if (g.items.length === 0) return;
                             const name = g.items[0].Folder.replace(/[^a-z0-9]/gi, '_');
@@ -911,10 +861,12 @@
                         triggerDownload(b, `${originalFileName}.zip`);
                     }
                 }
+                log('success', 'Data berhasil diexport! 🎉');
             } catch (e) {
-                alert("Export Error: " + e.message);
+                log('error', "Export Error: " + e.message);
             } finally {
-                showLoading(false);
+                btnConvert.disabled = false;
+                btnConvert.innerHTML = 'Download Data';
             }
         }
 
@@ -934,18 +886,10 @@
         function triggerDownload(blob, filename) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
         }
-
-        function showLoading(show) {
-            loadingOverlay.style.display = show ? 'flex' : 'none';
-        }
-
     </script>
 </body>
 

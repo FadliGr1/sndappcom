@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Blog - SND App</title>
+
+    <!-- Panggil CSS Global -->
+    <link rel="stylesheet" href="main.css">
+
+    <style>
+        /* === OVERRIDE GLOBAL VARIABLES FOR THIS PAGE === */
+        :root {
+            --bg-color: #ffffff !important;
+            --card-bg: #ffffff;
+            --soft-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+            --hover-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 7rem 1.5rem 6rem 1.5rem;
+            position: relative;
+        }
+
+        /* --- HERO SECTION (Fun & Animated) --- */
+        .blog-header {
+            text-align: center;
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: -1;
+            animation: float 6s infinite ease-in-out;
+            opacity: 0.6;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            background: #e0f2fe;
+            top: -50px;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            background: #fce7f3;
+            bottom: -20px;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            background: #dcfce7;
+            top: 20px;
+            right: 30%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .blog-title {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
+        }
+
+        .blog-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 500px;
+            margin: 0 auto 2rem auto;
+            line-height: 1.6;
+        }
+
+        /* Search Bar Minimalis */
+        .search-wrapper {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            padding-right: 50px;
+            border-radius: 100px;
+            border: 2px solid #f1f5f9;
+            background: #fff;
+            font-size: 1rem;
+            transition: 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* --- FILTERS --- */
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 8px 20px;
+            border-radius: 100px;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .pill:hover {
+            background: #e2e8f0;
+        }
+
+        .pill.active {
+            background: #1e293b;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- CARD GRID (Borderless) --- */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 3rem;
+        }
+
+        .art-card {
+            border-radius: 24px;
+            background: white;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .art-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .art-thumb {
+            height: 220px;
+            width: 100%;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+
+        .art-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.4s ease;
+        }
+
+        .art-card:hover .art-icon {
+            transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
+        }
+
+        .art-category {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .art-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin: 0 0 0.8rem 0;
+            color: #1e293b;
+            line-height: 1.3;
+        }
+
+        .art-excerpt {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .art-meta {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* === SMOOTH READING MODAL === */
+        .read-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.0);
+            /* Awal transparan */
+            backdrop-filter: blur(0px);
+            /* Awal tidak blur */
+            z-index: 2000;
+
+            /* Smooth Transition: Menggunakan Visibility agar bisa fade-out */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            /* Ease Out */
+
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+
+        .read-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.85);
+            /* Akhir putih transparan */
+            backdrop-filter: blur(20px);
+            /* Akhir heavy blur */
+        }
+
+        .read-modal {
+            background: #fff;
+            max-width: 800px;
+            margin: 3rem auto;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #f1f5f9;
+            padding: 3rem;
+            position: relative;
+
+            /* Animasi Card: Mulai dari bawah & kecil */
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            /* Efek Spring/Membal */
+        }
+
+        /* State Open */
+        .read-overlay.show .read-modal {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .close-read {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            color: #64748b;
+        }
+
+        .close-read:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+            transform: rotate(90deg);
+        }
+
+        .modal-art-header {
+            height: 200px;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .modal-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            color: #1e293b;
+        }
+
+        .modal-content-body {
+            font-size: 1.1rem;
+            color: #475569;
+            line-height: 1.8;
+        }
+
+        .modal-content-body p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- CTA: JADILAH PENULIS --- */
+        .cta-writer {
+            margin-top: 6rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(118, 75, 162, 0.3);
+        }
+
+        .cta-writer h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-writer p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-white {
+            background: white;
+            color: #764ba2;
+            padding: 14px 32px;
+            border-radius: 100px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-white:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .decoration-circle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .dc-1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+        }
+
+        .dc-2 {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            right: -50px;
+        }
+
+        /* Loading Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header injected by script.js -->
+
+    <div class="container">
+
+        <!-- Fun Hero -->
+        <div class="blog-header">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+
+            <h1 class="blog-title">Engineering Playground</h1>
+            <p class="blog-subtitle">Wadah santai buat berbagi ilmu, curhat error, dan tutorial teknis tanpa bahasa yang
+                ribet.</p>
+
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="blogSearch" placeholder="Coba cari 'FO Cut'...">
+                <button class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="filters">
+            <div class="pill active" onclick="filterPosts('all', this)">Semua</div>
+            <div class="pill" onclick="filterPosts('Tutorial', this)">Tutorial 📚</div>
+            <div class="pill" onclick="filterPosts('Update', this)">Update 🚀</div>
+            <div class="pill" onclick="filterPosts('Curhat', this)">Curhat ☕</div>
+        </div>
+
+        <!-- Blog Grid -->
+        <div id="blogGrid" class="blog-grid">
+            <!-- Content by JS -->
+        </div>
+
+        <!-- CTA Section: Jadilah Penulis -->
+        <div class="cta-writer">
+            <div class="decoration-circle dc-1"></div>
+            <div class="decoration-circle dc-2"></div>
+            <h2>Punya Cerita Menarik?</h2>
+            <p>Jangan dipendem sendiri. Bagikan pengalaman atau tutorial teknis kamu di sini. Jadilah kontributor dan
+                bantu engineer lain tumbuh!</p>
+            <a href="contact.html" class="btn-white">
+                Jadilah Penulis
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- READING MODAL (Popup) -->
+    <div class="read-overlay" id="readOverlay">
+        <div class="read-modal">
+            <button class="close-read" onclick="closeArticle()">&times;</button>
+
+            <div id="modalContent">
+                <!-- Content Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p style="color:#94a3b8;">&copy; 2025 SND App. Crafted with ☕ and Code.</p>
+    </footer>
+
+    <!-- Script Global -->
+    <script src="script.js"></script>
+
+    <!-- Script Lokal Blog -->
+    <script>
+        // 1. DATABASE DUMMY (Lengkap dengan konten HTML)
+        const blogData = [
+            {
+                id: 1,
+                title: "Fitur Baru: Auto Cable Drop v1.4",
+                category: "Update",
+                excerpt: "Fitur yang paling ditunggu! Sekarang narik garis drop wire di Google Earth otomatis pake logika 'Nearest Boundary'.",
+                date: "24 Nov 2025",
+                author: "FadliGr",
+                color: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
+                icon: "🚀",
+                content: `
+                    <p>Halo Engineer! Akhirnya yang ditunggu-tunggu rilis juga. Di versi 1.4 ini, ABD Maker LN punya kemampuan magis baru.</p>
+                    <h3>Apa itu Auto Cable Drop?</h3>
+                    <p>Bayangkan kamu punya 100 rumah (HOME) dan boundary FAT di sekitarnya. Dulu, kamu harus tarik garis manual dari rumah ke FAT. Sekarang? Klik satu tombol, dan BOOM! 100 garis terbuat otomatis.</p>
+                    <p>Algoritma kami menggunakan <code>Turf.js</code> untuk mendeteksi rumah mana yang berada dalam polygon FAT mana, lalu menarik garis lurus (LineString) secara otomatis.</p>
+                    <h3>Cara Pakai:</h3>
+                    <ol>
+                        <li>Siapkan layer <strong>HOME</strong> dan <strong>BOUNDARY FAT</strong>.</li>
+                        <li>Upload ke ABD Maker LN.</li>
+                        <li>Klik proses. Selesai.</li>
+                    </ol>
+                `
+            },
+            {
+                id: 2,
+                title: "Tutorial Cleaning Data KML",
+                category: "Tutorial",
+                excerpt: "Sering dapet error 'Invalid Geometry'? Ini checklist wajib sebelum submit design ke tim pusat.",
+                date: "20 Nov 2025",
+                author: "Admin",
+                color: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
+                icon: "🧹",
+                content: `
+                    <p>Data kotor adalah musuh utama sistem inventory. Mari kita bersihkan!</p>
+                    <h3>1. Hapus Folder Kosong</h3>
+                    <p>Folder kosong di KML sering bikin parser error. Pastikan strukturnya bersih.</p>
+                    <h3>2. Cek Koordinat Ganda</h3>
+                    <p>Jangan sampai ada 2 tiang di koordinat yang sama persis. Sistem bakal bingung hitung asetnya.</p>
+                    <p>Gunakan tool <strong>Universal Converter</strong> di web ini untuk mendeteksi duplikat secara otomatis.</p>
+                `
+            },
+            {
+                id: 3,
+                title: "Drama Lapangan: Tiang Hilang",
+                category: "Curhat",
+                excerpt: "Kisah nyata surveyor yang nyari tiang di koordinat X, eh ternyata udah jadi pohon pisang.",
+                date: "15 Nov 2025",
+                author: "Surveyor01",
+                color: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                icon: "🍌",
+                content: `
+                    <p>Jadi gini ceritanya. Saya dapet data koordinat tiang dari data 2 tahun lalu.</p>
+                    <p>Saya jalan kaki 2km masuk gang. Pas sampe di titik koordinatnya, kamu tau apa yang saya temukan? Bukan tiang beton 7 meter, tapi <strong>Pohon Pisang</strong> yang lagi berbuah lebat.</p>
+                    <p>Pelajaran hari ini: <em>Selalu validasi data desktop dengan kondisi lapangan terkini.</em> Dan jangan lupa bawa bekal.</p>
+                `
+            },
+            {
+                id: 4,
+                title: "Mengenal XGS-PON",
+                category: "Tutorial",
+                excerpt: "Internet 10Gbps ke rumah? Lebay atau kebutuhan? Mari kita bedah teknologinya.",
+                date: "10 Nov 2025",
+                author: "TechLead",
+                color: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)",
+                icon: "⚡",
+                content: `
+                    <p>GPON biasa cuma bisa 2.5 Gbps downstream. XGS-PON? <strong>10 Gbps simetris!</strong></p>
+                    <p>Teknologi ini menggunakan panjang gelombang yang berbeda, jadi bisa jalan bareng sama GPON biasa di satu kabel fiber yang sama.</p>
+                `
+            }
+        ];
+
+        // 2. RENDER GRID
+        function renderGrid(filter = 'all') {
+            const grid = document.getElementById('blogGrid');
+            grid.innerHTML = '';
+
+            const filtered = filter === 'all' ? blogData : blogData.filter(item => item.category === filter);
+
+            filtered.forEach((item, index) => {
+                const delay = index * 100;
+                const html = `
+                    <article class="art-card" onclick="openArticle(${item.id})" style="animation: fadeInUp 0.6s ease forwards ${delay}ms; opacity: 0; transform: translateY(20px);">
+                        <div class="art-thumb" style="background: ${item.color}">
+                            <div class="art-icon">${item.icon}</div>
+                        </div>
+                        <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                            <span class="art-category">${item.category}</span>
+                            <h3 class="art-title">${item.title}</h3>
+                            <p class="art-excerpt">${item.excerpt}</p>
+                            <div class="art-meta">
+                                <span>${item.date}</span> • <span>${item.author}</span>
+                            </div>
+                        </div>
+                    </article>
+                `;
+                grid.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // 3. FILTER LOGIC
+        function filterPosts(cat, btn) {
+            // Active class toggle
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            renderGrid(cat);
+        }
+
+        // 4. SEARCH LOGIC
+        document.getElementById('blogSearch').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const grid = document.getElementById('blogGrid');
+            grid.innerHTML = '';
+
+            const filtered = blogData.filter(item =>
+                item.title.toLowerCase().includes(val) ||
+                item.excerpt.toLowerCase().includes(val)
+            );
+
+            filtered.forEach(item => {
+                const html = `
+                    <article class="art-card" onclick="openArticle(${item.id})">
+                        <div class="art-thumb" style="background: ${item.color}">
+                            <div class="art-icon">${item.icon}</div>
+                        </div>
+                        <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                            <span class="art-category">${item.category}</span>
+                            <h3 class="art-title">${item.title}</h3>
+                            <p class="art-excerpt">${item.excerpt}</p>
+                        </div>
+                    </article>
+                `;
+                grid.insertAdjacentHTML('beforeend', html);
+            });
+        });
+
+        // 5. MODAL LOGIC (POPUP READING)
+        function openArticle(id) {
+            const article = blogData.find(a => a.id === id);
+            if (!article) return;
+
+            const modalContent = document.getElementById('modalContent');
+
+            // Populate Content
+            modalContent.innerHTML = `
+                <div class="modal-art-header" style="background: ${article.color}; display: flex; align-items: center; justify-content: center;">
+                    <div style="font-size: 4rem; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));">${article.icon}</div>
+                </div>
+                <div class="modal-content">
+                    <span style="color: var(--primary-color); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${article.category}</span>
+                    <h1>${article.title}</h1>
+                    <div style="margin-bottom: 2rem; color: #94a3b8; font-size: 0.9rem;">
+                        Ditulis oleh <strong>${article.author}</strong> pada ${article.date}
+                    </div>
+                    <div class="modal-content-body">
+                        ${article.content}
+                    </div>
+                </div>
+            `;
+
+            // Show
+            document.getElementById('readOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden'; // Disable background scroll
+        }
+
+        function closeArticle() {
+            document.getElementById('readOverlay').classList.remove('show');
+            document.body.style.overflow = 'auto'; // Enable scroll
+        }
+
+        // Close on click outside
+        document.getElementById('readOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('readOverlay')) closeArticle();
+        });
+
+        // Init
+        renderGrid();
+
+    </script>
+</body>
+
+</html>

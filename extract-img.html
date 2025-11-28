@@ -4,252 +4,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KMZ Image Extractor - SND App</title>
+    <title>Image Extractor - SND App</title>
 
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
 
+    <!-- Global Style -->
+    <link rel="stylesheet" href="main.css">
+
     <style>
-        /* === TEMA & VARIABEL (Konsisten) === */
+        /* === DASHBOARD LAYOUT === */
         :root {
-            --bg-color: #ffffff;
-            --container-color: #f8fafc;
-            --log-bg: #f1f5f9;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --input-bg: #ffffff;
-            --primary-color: #2563eb;
-            --primary-text: #ffffff;
-            --success-color: #16a34a;
-            --error-color: #dc2626;
-            --warn-color: #d97706;
-            --drag-active: #eff6ff;
+            --bg-color: #F5F5F7;
         }
 
         :root[data-theme="dark"] {
-            --bg-color: #020817;
-            --container-color: #0f172a;
-            --log-bg: #020817;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --input-bg: #1e293b;
-            --primary-color: #3b82f6;
-            --primary-text: #ffffff;
-            --success-color: #22c55e;
-            --error-color: #ef4444;
-            --warn-color: #f59e0b;
-            --drag-active: #1e3a8a;
-        }
-
-        * {
-            box-sizing: border-box;
+            --bg-color: #000000;
         }
 
         html,
         body {
             height: 100vh;
             width: 100vw;
-            margin: 0;
-            padding: 0;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 0;
         }
 
-        .app-container {
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 3fr 1.2fr;
+            gap: 1.5rem;
+            height: 100%;
+            padding: 100px 1.5rem 1.5rem 1.5rem;
+            box-sizing: border-box;
+        }
+
+        /* LEFT PANEL */
+        .workspace-panel {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            width: 100%;
+            gap: 1.5rem;
+            overflow-y: auto;
+            padding-right: 8px;
+            padding-bottom: 2rem;
         }
 
-        /* Header */
-        .app-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-color);
+        .workspace-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .workspace-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .workspace-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .tool-header-mini {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            font-weight: 600;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s;
-        }
-
-        .back-btn:hover {
-            background-color: var(--container-color);
+        .tool-title {
+            font-size: 1.8rem;
+            font-weight: 800;
             color: var(--text-color);
+            margin: 0;
         }
 
-        .app-header h1 {
+        .tool-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
             margin: 0;
-            font-size: 1.25rem;
+        }
+
+        .version-badge {
+            font-size: 0.75rem;
+            background: var(--accent-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card-dashboard {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-label {
+            font-size: 0.8rem;
             font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .version-badge {
-            font-size: 0.75rem;
-            background: var(--container-color);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            padding: 2px 8px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .icon-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-        }
-
-        .icon-btn:hover {
-            background-color: var(--container-color);
-        }
-
-        [data-theme="dark"] .icon-sun {
-            display: none;
-        }
-
-        [data-theme="light"] .icon-moon {
-            display: none;
-        }
-
-        /* Body Layout */
-        .app-body {
-            display: flex;
-            flex-direction: row;
-            flex-grow: 1;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .main-content {
-            flex-basis: 70%;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-        }
-
-        .log-container {
-            flex-basis: 30%;
-            border-left: 1px solid var(--border-color);
-            background-color: var(--container-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Content Styling */
-        .main-content h1 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        .main-content p {
-            color: var(--text-muted);
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-
-        h2 {
-            color: var(--text-color);
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: var(--text-color);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Range Slider */
+        /* Slider Custom */
         input[type="range"] {
             width: 100%;
             cursor: pointer;
             accent-color: var(--primary-color);
+            height: 6px;
+            border-radius: 5px;
+            background: var(--border-color);
+            outline: none;
+            appearance: none;
         }
 
-        /* Drag & Drop */
-        .upload-zone {
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- UPLOAD AREA FIXED --- */
+        .upload-compact {
             border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 3rem;
+            border-radius: 16px;
+            padding: 3rem 1.5rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: var(--container-color);
-            margin-bottom: 1.5rem;
+            background: rgba(0, 122, 255, 0.02);
+            transition: 0.2s;
             position: relative;
+            /* Penting untuk absolute child */
+            overflow: hidden;
+            /* Mencegah input keluar batas */
         }
 
-        .upload-zone:hover {
+        .upload-compact:hover {
             border-color: var(--primary-color);
+            transform: scale(1.01);
+            background: rgba(0, 122, 255, 0.05);
         }
 
-        .upload-zone.active {
-            border-color: var(--primary-color);
-            background-color: var(--drag-active);
-        }
-
-        .upload-zone p {
-            margin: 0.5rem 0 0 0;
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        .upload-icon {
-            width: 54px;
-            height: 54px;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
-
+        /* FIX INPUT FILE: Menutupi seluruh area parent & transparan */
+        #fileInput,
         #kmzFile {
             position: absolute;
             top: 0;
@@ -258,115 +172,177 @@
             height: 100%;
             opacity: 0;
             cursor: pointer;
+            z-index: 10;
+            /* Pastikan di atas elemen lain */
+            font-size: 0;
+            /* Sembunyikan teks default 'Choose File' jika opacity gagal di browser lama */
         }
 
         #fileNameDisplay {
             font-weight: 700;
             color: var(--primary-color);
-            margin-top: 0.8rem;
+            margin-top: 8px;
             display: block;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
         }
 
-        /* Buttons */
-        .action-buttons {
+        /* RIGHT PANEL */
+        .monitor-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
             display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            height: 100%;
         }
 
-        .btn {
-            flex: 1;
-            padding: 0.9rem;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
+        .monitor-header {
+            background: var(--accent-bg);
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .monitor-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 1rem;
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #34C759;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34C759;
+            animation: pulse 2s infinite;
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background-color: var(--text-muted);
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px solid var(--success-color);
-            color: var(--success-color);
-            text-decoration: none;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        /* Log */
-        .log-title-bar {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-        }
-
-        #log {
-            flex-grow: 1;
-            padding: 1.5rem;
+        .monitor-log-area {
+            flex: 1;
+            padding: 1rem;
             overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            background-color: var(--log-bg);
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--bg-color);
         }
 
-        .log-entry {
-            margin-bottom: 6px;
-            line-height: 1.5;
-            word-wrap: break-word;
+        .monitor-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--card-bg);
         }
 
-        .l-info {
+        /* Log Bubbles */
+        .log-bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            border-bottom-left-radius: 2px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             color: var(--text-color);
-            opacity: 0.8;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1.4;
+            font-size: 0.8rem;
         }
 
-        .l-warn {
-            color: var(--warn-color);
+        .log-bubble.info {
+            border-left: 3px solid var(--primary-color);
         }
 
-        .l-err {
+        .log-bubble.warn {
+            border-left: 3px solid var(--warn-color);
+            background: rgba(255, 149, 0, 0.1);
+            border-color: transparent;
+        }
+
+        .log-bubble.error {
+            border-left: 3px solid var(--error-color);
+            background: rgba(255, 59, 48, 0.1);
             color: var(--error-color);
+            border-color: transparent;
         }
 
-        .l-success {
-            color: var(--success-color);
+        .log-bubble.success {
+            border-left: 3px solid var(--success-color);
+            background: rgba(52, 199, 89, 0.1);
+            border-color: transparent;
         }
 
-        .l-head {
-            color: var(--primary-color);
-            font-weight: bold;
-            margin-top: 12px;
-            margin-bottom: 4px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 2px;
+        .log-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            display: block;
+            opacity: 0.7;
         }
 
-        /* Spinner */
+        /* Animations */
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+
+        /* Loading Spinner */
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -374,12 +350,12 @@
         }
 
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #ffffff;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
             display: none;
         }
 
@@ -391,204 +367,140 @@
             display: none;
         }
 
-        .watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 15px;
-            font-size: 11px;
-            color: var(--text-muted);
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background: var(--bg-color);
-            padding: 2rem;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            color: var(--text-color);
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        .modal-body ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            color: var(--text-muted);
-        }
-
-        @media (max-width: 1000px) {
-            .app-body {
-                flex-direction: column;
+        @media (max-width: 900px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: auto;
+                padding-top: 90px;
             }
 
-            .main-content {
-                flex-basis: auto;
-                height: 50%;
+            .workspace-panel {
+                overflow: visible;
+                padding-bottom: 0;
             }
 
-            .log-container {
-                height: 50%;
-                border-left: none;
-                border-top: 1px solid var(--border-color);
+            .monitor-panel {
+                height: 400px;
+                margin-bottom: 2rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-left">
-                <a href="index.html" class="back-btn">← Kembali</a>
-                <h1>Image Extractor <span class="version-badge" onclick="openModal()">v3.0</span></h1>
-            </div>
-            <div class="header-right">
-                <button class="icon-btn" id="themeToggle">
-                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-            </div>
-        </header>
+    <!-- Header via Script Global -->
 
-        <div class="app-body">
-            <main class="main-content">
-                <h1>Ekstrak Foto dari KMZ</h1>
-                <p>Alat ini akan mengekstrak foto, mengonversi ke JPEG, menyematkan GPS (Geotagging), dan
-                    <strong>membuat catatan .txt</strong> jika foto tidak ditemukan di placemark.
-                </p>
+    <div class="dashboard-container">
 
-                <div class="form-group">
-                    <label>
-                        <span>Kualitas Kompresi JPEG</span>
-                        <span id="qualityValue" style="color: var(--primary-color); font-weight:700;">0.9
-                            (Tinggi)</span>
+        <!-- === KIRI: WORKSPACE === -->
+        <div class="workspace-panel animate-up">
+
+            <!-- Header Mini -->
+            <div class="tool-header-mini">
+                <div>
+                    <h1 class="tool-title">Image Extractor</h1>
+                    <p class="tool-desc">Geotagging foto otomatis dari file KMZ</p>
+                </div>
+                <div class="version-badge" onclick="openModal()">v3.0 📸</div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card-dashboard animate-up delay-1">
+                <div class="section-label">⚙️ Konfigurasi</div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:10px; color:var(--text-color); font-size:0.9rem;">
+                        <span>Kualitas Gambar (JPEG)</span>
+                        <span id="qualityValue" style="color:var(--primary-color);">0.9 (Tinggi)</span>
                     </label>
                     <input type="range" id="jpegQuality" min="0.1" max="1.0" step="0.05" value="0.9">
                 </div>
+                <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0;">
+                    Sistem akan mengonversi format gambar (PNG/WebP) menjadi JPEG standar dan
+                    menyuntikkan koordinat GPS (Geotag) dari Placemark KML ke dalam EXIF foto.
+                </p>
+            </div>
 
-                <div class="upload-zone" id="dropZone">
-                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p>Klik atau Seret File KMZ ke sini</p>
-                    <span id="fileNameDisplay"></span>
-                    <input type="file" id="kmzFile" accept=".kmz">
+            <!-- Upload Zone -->
+            <div class="upload-compact animate-up delay-2" id="dropZone">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
+                <p style="color:var(--text-muted); font-weight:500; margin:0;">Klik / Drop file <strong>.KMZ</strong> di
+                    sini</p>
+                <span id="fileNameDisplay"
+                    style="display:block; margin-top:8px; font-weight:700; color:var(--primary-color); font-size:0.9rem;"></span>
+                <!-- FIX: Input file transparan menutupi seluruh area -->
+                <input type="file" id="kmzFile" accept=".kmz">
+            </div>
+
+        </div>
+
+        <!-- === KANAN: MONITOR === -->
+        <aside class="monitor-panel animate-up" style="animation-delay: 0.2s;">
+            <div class="monitor-header">
+                <div class="monitor-title">
+                    <div class="pulse-dot"></div> Ruang Kendali 🚀
                 </div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">READY</div>
+            </div>
 
-                <div class="action-buttons">
-                    <button id="processBtn" class="btn btn-primary" disabled>
-                        <div class="spinner"></div>
-                        <span>Proses Ekstraksi</span>
-                    </button>
-                    <a id="downloadLink" class="btn btn-secondary" style="display: none;">Download ZIP</a>
+            <div class="monitor-log-area" id="log">
+                <!-- Empty State -->
+                <div id="logPlaceholder" style="text-align:center; color:var(--text-muted); margin-top:50%;">
+                    <div style="font-size:2rem; margin-bottom:10px; opacity:0.5;">💾</div>
+                    <p style="font-size:0.85rem;">Menunggu file KMZ...</p>
                 </div>
-            </main>
+            </div>
 
-            <aside class="log-container">
-                <div class="log-title-bar">Log Aktivitas</div>
-                <div id="log"></div>
-            </aside>
+            <div class="monitor-footer">
+                <button id="processBtn" class="btn-action btn-primary" style="width:100%;" disabled>
+                    <span class="spinner"></span>
+                    <span>Mulai Ekstraksi</span>
+                </button>
+                <a id="downloadLink" class="btn-action btn-secondary"
+                    style="width:100%; margin-top:10px; display:none; justify-content:center;">
+                    <span>🎉 Download ZIP</span>
+                </a>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- MODAL CHANGELOG -->
+    <div class="modal" id="changelogModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <div class="modal-content"
+            style="background:var(--bg-color); padding:2rem; border-radius:12px; max-width:500px; width:90%; border:1px solid var(--border-color);">
+            <div
+                style="display:flex; justify-content:space-between; margin-bottom:1.5rem; border-bottom:1px solid var(--border-color); padding-bottom:1rem;">
+                <h3 style="margin:0;">Changelog</h3>
+                <button onclick="closeModal()"
+                    style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <ul>
+                <li><strong>v3.0 (New):</strong> Error handling canggih. Jika foto tidak ada, sistem membuat file
+                    .txt (misal: Tiang_A_no_photo.txt) sebagai laporan.</li>
+                <li><strong>v2.5:</strong> Fitur Anti-Duplikat & UI Baru.</li>
+            </ul>
         </div>
     </div>
 
-    <div class="modal" id="changelogModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Changelog</h3><button class="close-modal" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <ul>
-                    <li><strong>v3.0 (New):</strong> Error handling canggih. Jika foto tidak ada, sistem membuat file
-                        .txt (misal: Tiang_A_no_photo.txt) sebagai laporan.</li>
-                    <li><strong>v2.5:</strong> Fitur Anti-Duplikat & UI Baru.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <!-- Script Global -->
+    <script src="script.js"></script>
 
-    <div class="watermark">by FadliGr</div>
-
+    <!-- Script Internal Logic -->
     <script>
-        // === UI VARIABLES ===
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('kmzFile');
         const fileNameDisplay = document.getElementById('fileNameDisplay');
         const processBtn = document.getElementById('processBtn');
         const downloadLink = document.getElementById('downloadLink');
         const logEl = document.getElementById('log');
+        const logPlaceholder = document.getElementById('logPlaceholder');
         const qualitySlider = document.getElementById('jpegQuality');
         const qualityValueLabel = document.getElementById('qualityValue');
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const rootHtml = document.documentElement;
 
         let originalKmzFile = null;
-
-        // === 1. THEME & UI LOGIC ===
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        rootHtml.dataset.theme = savedTheme;
-
-        themeToggleBtn.addEventListener('click', () => {
-            const next = rootHtml.dataset.theme === 'dark' ? 'light' : 'dark';
-            rootHtml.dataset.theme = next;
-            localStorage.setItem('theme', next);
-        });
 
         qualitySlider.addEventListener('input', () => {
             const val = parseFloat(qualitySlider.value);
@@ -600,7 +512,7 @@
         function closeModal() { document.getElementById('changelogModal').style.display = 'none'; }
         window.onclick = e => { if (e.target == document.getElementById('changelogModal')) closeModal(); };
 
-        // === 2. DRAG & DROP ===
+        // Drag & Drop Logic
         dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
         dropZone.addEventListener('drop', e => {
@@ -616,8 +528,10 @@
                 fileNameDisplay.textContent = file.name;
                 processBtn.disabled = false;
                 downloadLink.style.display = 'none';
-                logEl.innerHTML = '';
-                log('l-info', `File siap: ${file.name}`);
+
+                // Clear log placeholder on first load only
+                if (logPlaceholder) logPlaceholder.style.display = 'none';
+                log('info', `File diterima: ${file.name} 📸`);
             } else {
                 alert("Harap upload file .kmz");
             }
@@ -625,18 +539,27 @@
 
         processBtn.addEventListener('click', handleFileProcess);
 
-        // === 3. LOGGING UTILS ===
-        function log(cls, msg) {
-            const d = document.createElement('div'); d.className = `log-entry ${cls}`;
-            d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
-        }
-        function logHeader(msg) {
-            const d = document.createElement('div'); d.className = 'l-head'; d.textContent = msg;
-            logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
-        }
+        // FIXED LOG SYSTEM (Append instead of Replace)
+        function log(type, m) {
+            if (logPlaceholder) logPlaceholder.style.display = 'none';
 
-        // === 4. EXIF HELPERS ===
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const d = document.createElement('div');
+
+            let cssClass = 'info';
+            if (type === 'l-warn') cssClass = 'warn';
+            if (type === 'l-err') cssClass = 'error';
+            if (type === 'l-success') cssClass = 'success';
+
+            d.className = `log-bubble ${cssClass}`;
+            d.innerHTML = `<span class="log-time">${time}</span>${m}`;
+
+            logEl.appendChild(d);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        function logHeader(m) { log('info', `<strong>--- ${m} ---</strong>`); }
+
+        // Helper Functions (EXIF & Image)
         function degToDms(deg) {
             var d = Math.floor(deg);
             var m = Math.floor((deg - d) * 60);
@@ -671,7 +594,7 @@
                     const ctx = canvas.getContext('2d');
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    ctx.fillStyle = "#FFFFFF"; // Background putih (untuk PNG transparan)
+                    ctx.fillStyle = "#FFFFFF";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
                     canvas.toBlob((jpegBlob) => {
@@ -685,7 +608,7 @@
             });
         }
 
-        // === 5. MAIN PROCESS ===
+        // Main Logic
         async function handleFileProcess() {
             logHeader("Memulai Ekstraksi Foto...");
             processBtn.classList.add('processing');
@@ -695,8 +618,11 @@
             const jpegQuality = parseFloat(qualitySlider.value);
             const fileNameTracker = {};
 
+            // Artificial Delay for smooth UX
+            await new Promise(r => setTimeout(r, 800));
+
             try {
-                log('l-info', "Membaca file KMZ...");
+                log('info', "Membaca struktur KMZ... 📂");
                 const inputZip = new JSZip();
                 const loadedZip = await inputZip.loadAsync(originalKmzFile);
                 const outputZip = new JSZip();
@@ -709,7 +635,7 @@
                 const kmlDoc = parser.parseFromString(kmlText, "application/xml");
                 const placemarks = kmlDoc.getElementsByTagName("Placemark");
 
-                log('l-info', `Ditemukan ${placemarks.length} placemark. Mulai scanning...`);
+                log('info', `Ditemukan ${placemarks.length} aset. Memindai foto... 🔍`);
 
                 let count = 0, success = 0, errors = 0;
 
@@ -721,16 +647,13 @@
 
                     let pmName = nameEl.textContent.trim().replace(/[\\/:*?"<>|]/g, "_");
 
-                    // --- Logic Duplicate Name Check ---
                     if (fileNameTracker[pmName]) {
                         fileNameTracker[pmName]++;
                         pmName = `${pmName} (${fileNameTracker[pmName]})`;
                     } else {
                         fileNameTracker[pmName] = 0;
                     }
-                    // ----------------------------------
 
-                    // Cek Koordinat
                     const pt = pm.getElementsByTagName("Point")[0];
                     const coordEl = pt ? pt.getElementsByTagName("coordinates")[0] : null;
                     let coords = null;
@@ -739,10 +662,9 @@
                         if (parts.length >= 2) coords = { lat: parseFloat(parts[1]), lon: parseFloat(parts[0]) };
                     }
 
-                    // --- Cek Deskripsi ---
                     const descEl = pm.getElementsByTagName("description")[0];
                     if (!descEl) {
-                        log('l-warn', `[${count}] ${pmName}: Tidak ada deskripsi. Buat TXT.`);
+                        log('l-warn', `Skip ${pmName}: Deskripsi kosong.`);
                         outputZip.file(`${pmName}_no_photo.txt`, "Tidak ada tag <description>.");
                         errors++;
                         continue;
@@ -752,7 +674,7 @@
                     const imgEl = descDoc.querySelector("img");
 
                     if (!imgEl) {
-                        log('l-warn', `[${count}] ${pmName}: Tidak ada <img>. Buat TXT.`);
+                        log('l-warn', `Skip ${pmName}: Tidak ada foto.`);
                         outputZip.file(`${pmName}_no_photo.txt`, "Tidak ada tag <img> di deskripsi.");
                         errors++;
                         continue;
@@ -765,19 +687,18 @@
                         continue;
                     }
 
-                    // Normalisasi path (ganti backslash windows ke forward slash)
                     imgSrc = imgSrc.replace(/\\/g, "/");
                     const imgFile = loadedZip.file(imgSrc);
 
                     if (imgFile) {
-                        log('l-info', `[${count}] Proses: ${pmName}.jpg`);
+                        // Log ALL Process as requested (no skipping)
+                        log('info', `Memproses ${pmName}... 🖼️`);
+
                         let imgBlob = await imgFile.async("blob");
 
                         try {
-                            // 1. Convert ke JPEG
                             imgBlob = await convertImageToJpeg(imgBlob, jpegQuality);
 
-                            // 2. Inject GPS jika ada
                             if (coords) {
                                 const base64 = await blobToBase64(imgBlob);
                                 const gps = {};
@@ -795,19 +716,19 @@
                             success++;
 
                         } catch (err) {
-                            log('l-err', `Gagal proses ${pmName}: ${err.message}`);
-                            outputZip.file(`${pmName}_error.jpg`, await imgFile.async("blob")); // Simpan asli jika gagal
+                            log('l-err', `Gagal convert ${pmName}`);
+                            outputZip.file(`${pmName}_error.jpg`, await imgFile.async("blob"));
                         }
                     } else {
-                        log('l-err', `[${count}] ${pmName}: File ${imgSrc} tidak ditemukan di KMZ.`);
-                        outputZip.file(`${pmName}_no_photo.txt`, `File gambar '${imgSrc}' tidak ditemukan di dalam arsip KMZ.`);
+                        log('l-err', `File hilang: ${imgSrc}`);
+                        outputZip.file(`${pmName}_no_photo.txt`, `File gambar '${imgSrc}' tidak ditemukan.`);
                         errors++;
                     }
                 }
 
                 if (success === 0 && errors === 0) throw new Error("Tidak ada data yang diproses.");
 
-                log('l-info', "Mengompres output ZIP...");
+                log('info', "Mengemas paket ZIP... 📦");
                 const outBlob = await outputZip.generateAsync({ type: "blob" });
                 const url = URL.createObjectURL(outBlob);
 
@@ -816,8 +737,8 @@
                 downloadLink.style.display = 'flex';
 
                 logHeader("SELESAI");
-                log('l-success', `Sukses: ${success} foto.`);
-                log('l-warn', `Tidak ditemukan/Error: ${errors} file.`);
+                log('l-success', `Berhasil: ${success} foto.`);
+                log('l-warn', `Gagal/No-Foto: ${errors} item.`);
 
             } catch (error) {
                 log('l-err', error.message);
