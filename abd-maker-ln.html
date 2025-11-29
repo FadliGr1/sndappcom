@@ -8,11 +8,9 @@
 
     <link rel="stylesheet" href="main.css">
 
-    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
-    <!-- Global Style -->
     <style>
         /* === DASHBOARD LAYOUT === */
         :root {
@@ -402,9 +400,7 @@
 <body>
 
     <div class="dashboard-container">
-        <!-- === KIRI: WORKSPACE (Form & Config) === -->
         <div class="workspace-panel animate-up">
-            <!-- Header Mini -->
             <div class="tool-header-mini">
                 <div>
                     <h1 class="tool-title">ABD Maker LN</h1>
@@ -412,10 +408,9 @@
                 </div>
                 <div class="version-badge"
                     style="background: var(--accent-bg); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-muted)">
-                    v1.9 (Fixed Styles & Size) 🚀</div>
+                    v2.0 (Schema Fixed) 🚀</div>
             </div>
 
-            <!-- 1. Config Peta -->
             <div class="card-dashboard">
                 <div class="section-label">🌍 Peta & Lokasi</div>
                 <div class="compact-grid">
@@ -439,7 +434,6 @@
                 </div>
             </div>
 
-            <!-- 2. Detail Input -->
             <div class="card-dashboard">
                 <div class="section-label">📝 Parameter Desain</div>
                 <div class="compact-grid">
@@ -484,7 +478,6 @@
                 </div>
             </div>
 
-            <!-- 3. Upload -->
             <div class="upload-compact" id="dropZone">
                 <div style="font-size: 2.5rem; margin-bottom: 5px">📂</div>
                 <p style="color: var(--text-muted); font-weight: 500; margin: 0">Klik / Drop file <strong>.KMZ</strong>
@@ -496,7 +489,6 @@
             </div>
         </div>
 
-        <!-- KANAN: MONITOR -->
         <aside class="monitor-panel animate-up" style="animation-delay: 0.2s">
             <div class="monitor-header">
                 <div class="monitor-title">
@@ -697,35 +689,37 @@
 
         const XML_HOOK = `<Schema name="HOOK" id="S_HOOK_SSS"><SimpleField type="string" name="Clamp_Hook_ID"><displayName><b>Clamp_Hook_ID</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LATITUDE"><displayName><b>Clamp_Hook_LATITUDE</b></displayName></SimpleField><SimpleField type="string" name="Clamp_Hook_LONGITUDE"><displayName><b>Clamp_Hook_LONGITUDE</b></displayName></SimpleField></Schema><StyleMap id="SM_HOOK"><Pair><key>normal</key><styleUrl>#SN_HOOK</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#SH_HOOK</styleUrl></Pair></StyleMap><Style id="SH_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_square_highlight.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style><Style id="SN_HOOK"><IconStyle><color>ff0000ff</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_square.png</href></Icon></IconStyle><BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOOK/Clamp_Hook_ID]</td></tr><tr><td><b>Clamp_Hook_LATITUDE</b></td><td>$[HOOK/Clamp_Hook_LATITUDE]</td></tr><tr><td><b>Clamp_Hook_LONGITUDE</b></td><td>$[HOOK/Clamp_Hook_LONGITUDE]</td></tr></table>]]></text></BalloonStyle></Style>`;
 
+        // === UPDATE BY GEMINI: Added FIBER_NODE and ADDRESS_POLE_2 to match Standard 18.kml ===
         const XML_HOME = `<Schema name="HOME" id="S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS">
-            <SimpleField type="string" name="HOMEPASS_ID"><displayName>&lt;b&gt;HOMEPASS_ID&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="CLUSTER_NAME"><displayName>&lt;b&gt;CLUSTER_NAME&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="PREFIX_ADDRESS"><displayName>&lt;b&gt;PREFIX_ADDRESS&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="STREET_NAME"><displayName>&lt;b&gt;STREET_NAME&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="HOUSE_NUMBER"><displayName>&lt;b&gt;HOUSE_NUMBER&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="BLOCK"><displayName>&lt;b&gt;BLOCK&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="FLOOR"><displayName>&lt;b&gt;FLOOR&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="RT"><displayName>&lt;b&gt;RT&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="RW"><displayName>&lt;b&gt;RW&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="DISTRICT"><displayName>&lt;b&gt;DISTRICT&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="SUB_DISTRICT"><displayName>&lt;b&gt;SUB_DISTRICT&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="FDT_CODE"><displayName>&lt;b&gt;FDT_CODE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="FAT_CODE"><displayName>&lt;b&gt;FAT_CODE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="BUILDING_LATITUDE"><displayName>&lt;b&gt;BUILDING_LATITUDE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="BUILDING_LONGITUDE"><displayName>&lt;b&gt;BUILDING_LONGITUDE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="Category_BizPass"><displayName>&lt;b&gt;Category BizPass&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="POST_CODE"><displayName>&lt;b&gt;POST CODE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="ADDRESS_POLE___FAT"><displayName>&lt;b&gt;ADDRESS POLE / FAT&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="OV_UG"><displayName>&lt;b&gt;OV_UG&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="HOUSE_COMMENT_"><displayName>&lt;b&gt;HOUSE_COMMENT_&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="BUILDING_NAME"><displayName>&lt;b&gt;BUILDING_NAME&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="TOWER"><displayName>&lt;b&gt;TOWER&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="APTN"><displayName>&lt;b&gt;APTN&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="FIBER_NODE__HFC_"><displayName>&lt;b&gt;FIBER_NODE__HFC_&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="ID_Area"><displayName>&lt;b&gt;ID_Area&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="Clamp_Hook_ID"><displayName>&lt;b&gt;Clamp_Hook_ID&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="DEPLOYMENT_TYPE"><displayName>&lt;b&gt;DEPLOYMENT_TYPE&lt;/b&gt;</displayName></SimpleField>
-            <SimpleField type="string" name="NEED_SURVEY"><displayName>&lt;b&gt;NEED_SURVEY&lt;/b&gt;</displayName></SimpleField>
+            <SimpleField type="string" name="HOMEPASS_ID"><displayName><b>HOMEPASS_ID</b></displayName></SimpleField>
+            <SimpleField type="string" name="CLUSTER_NAME"><displayName><b>CLUSTER_NAME</b></displayName></SimpleField>
+            <SimpleField type="string" name="PREFIX_ADDRESS"><displayName><b>PREFIX_ADDRESS</b></displayName></SimpleField>
+            <SimpleField type="string" name="STREET_NAME"><displayName><b>STREET_NAME</b></displayName></SimpleField>
+            <SimpleField type="string" name="HOUSE_NUMBER"><displayName><b>HOUSE_NUMBER</b></displayName></SimpleField>
+            <SimpleField type="string" name="BLOCK"><displayName><b>BLOCK</b></displayName></SimpleField>
+            <SimpleField type="string" name="FLOOR"><displayName><b>FLOOR</b></displayName></SimpleField>
+            <SimpleField type="string" name="RT"><displayName><b>RT</b></displayName></SimpleField>
+            <SimpleField type="string" name="RW"><displayName><b>RW</b></displayName></SimpleField>
+            <SimpleField type="string" name="DISTRICT"><displayName><b>DISTRICT</b></displayName></SimpleField>
+            <SimpleField type="string" name="SUB_DISTRICT"><displayName><b>SUB_DISTRICT</b></displayName></SimpleField>
+            <SimpleField type="string" name="FDT_CODE"><displayName><b>FDT_CODE</b></displayName></SimpleField>
+            <SimpleField type="string" name="FAT_CODE"><displayName><b>FAT_CODE</b></displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_LATITUDE"><displayName><b>BUILDING_LATITUDE</b></displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_LONGITUDE"><displayName><b>BUILDING_LONGITUDE</b></displayName></SimpleField>
+            <SimpleField type="string" name="Category_BizPass"><displayName><b>Category BizPass</b></displayName></SimpleField>
+            <SimpleField type="string" name="POST_CODE"><displayName><b>POST CODE</b></displayName></SimpleField>
+            <SimpleField type="string" name="ADDRESS_POLE___FAT"><displayName><b>ADDRESS POLE / FAT</b></displayName></SimpleField>
+            <SimpleField type="string" name="OV_UG"><displayName><b>OV_UG</b></displayName></SimpleField>
+            <SimpleField type="string" name="HOUSE_COMMENT_"><displayName><b>HOUSE_COMMENT_</b></displayName></SimpleField>
+            <SimpleField type="string" name="BUILDING_NAME"><displayName><b>BUILDING_NAME</b></displayName></SimpleField>
+            <SimpleField type="string" name="TOWER"><displayName><b>TOWER</b></displayName></SimpleField>
+            <SimpleField type="string" name="APTN"><displayName><b>APTN</b></displayName></SimpleField>
+            <SimpleField type="string" name="FIBER_NODE__HFC_"><displayName><b>FIBER_NODE__HFC_</b></displayName></SimpleField>
+            <SimpleField type="string" name="ADDRESS_POLE___FAT_2"><displayName><b>ADDRESS POLE / FAT</b></displayName></SimpleField>
+            <SimpleField type="string" name="ID_Area"><displayName><b>ID_Area</b></displayName></SimpleField>
+            <SimpleField type="string" name="Clamp_Hook_ID"><displayName><b>Clamp_Hook_ID</b></displayName></SimpleField>
+            <SimpleField type="string" name="DEPLOYMENT_TYPE"><displayName><b>DEPLOYMENT_TYPE</b></displayName></SimpleField>
+            <SimpleField type="string" name="NEED_SURVEY"><displayName><b>NEED_SURVEY</b></displayName></SimpleField>
         </Schema>
         <StyleMap id="SM_HOME">
             <Pair><key>normal</key><styleUrl>#SN_HOME</styleUrl></Pair>
@@ -733,11 +727,11 @@
         </StyleMap>
         <Style id="SH_HOME">
             <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href></Icon></IconStyle>
-            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
+            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT_2]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
         </Style>
         <Style id="SN_HOME">
             <IconStyle><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle>
-            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
+            <BalloonStyle><text><![CDATA[<table border="0"><tr><td><b>HOMEPASS_ID</b></td><td>$[HOME/HOMEPASS_ID]</td></tr><tr><td><b>CLUSTER_NAME</b></td><td>$[HOME/CLUSTER_NAME]</td></tr><tr><td><b>PREFIX_ADDRESS</b></td><td>$[HOME/PREFIX_ADDRESS]</td></tr><tr><td><b>STREET_NAME</b></td><td>$[HOME/STREET_NAME]</td></tr><tr><td><b>HOUSE_NUMBER</b></td><td>$[HOME/HOUSE_NUMBER]</td></tr><tr><td><b>BLOCK</b></td><td>$[HOME/BLOCK]</td></tr><tr><td><b>FLOOR</b></td><td>$[HOME/FLOOR]</td></tr><tr><td><b>RT</b></td><td>$[HOME/RT]</td></tr><tr><td><b>RW</b></td><td>$[HOME/RW]</td></tr><tr><td><b>DISTRICT</b></td><td>$[HOME/DISTRICT]</td></tr><tr><td><b>SUB_DISTRICT</b></td><td>$[HOME/SUB_DISTRICT]</td></tr><tr><td><b>FDT_CODE</b></td><td>$[HOME/FDT_CODE]</td></tr><tr><td><b>FAT_CODE</b></td><td>$[HOME/FAT_CODE]</td></tr><tr><td><b>BUILDING_LATITUDE</b></td><td>$[HOME/BUILDING_LATITUDE]</td></tr><tr><td><b>BUILDING_LONGITUDE</b></td><td>$[HOME/BUILDING_LONGITUDE]</td></tr><tr><td><b>Category BizPass</b></td><td>$[HOME/Category_BizPass]</td></tr><tr><td><b>POST CODE</b></td><td>$[HOME/POST_CODE]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT]</td></tr><tr><td><b>OV_UG</b></td><td>$[HOME/OV_UG]</td></tr><tr><td><b>HOUSE_COMMENT_</b></td><td>$[HOME/HOUSE_COMMENT_]</td></tr><tr><td><b>BUILDING_NAME</b></td><td>$[HOME/BUILDING_NAME]</td></tr><tr><td><b>TOWER</b></td><td>$[HOME/TOWER]</td></tr><tr><td><b>APTN</b></td><td>$[HOME/APTN]</td></tr><tr><td><b>FIBER_NODE__HFC_</b></td><td>$[HOME/FIBER_NODE__HFC_]</td></tr><tr><td><b>ADDRESS POLE / FAT</b></td><td>$[HOME/ADDRESS_POLE___FAT_2]</td></tr><tr><td><b>ID_Area</b></td><td>$[HOME/ID_Area]</td></tr><tr><td><b>Clamp_Hook_ID</b></td><td>$[HOME/Clamp_Hook_ID]</td></tr><tr><td><b>DEPLOYMENT_TYPE</b></td><td>$[HOME/DEPLOYMENT_TYPE]</td></tr><tr><td><b>NEED_SURVEY</b></td><td>$[HOME/NEED_SURVEY]</td></tr></table>]]></text></BalloonStyle>
         </Style>`;
 
         const ALL_XML = XML_POLE + XML_FDT + XML_FAT + XML_HOOK + XML_HOME;
@@ -1133,19 +1127,41 @@
 
                         const cmt = hk !== "-" ? data.houseComment : "-";
 
-                        // === UPDATE FOR NEW XML STYLE ===
+                        // === UPDATE FOR NEW XML STYLE (BY GEMINI) ===
+                        // Ditambahkan FIBER_NODE dan ADDRESS_POLE_2 pada loop data
                         setMeta(p, {
                             style: "#SM_HOME", // UPDATE ID
-                            data: `<ExtendedData><SchemaData schemaUrl="#S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS"><SimpleData name="HOMEPASS_ID">-</SimpleData><SimpleData name="CLUSTER_NAME">${data.clusterName}</SimpleData><SimpleData name="PREFIX_ADDRESS">${st.p
-                                }</SimpleData><SimpleData name="STREET_NAME">${st.n
-                                }</SimpleData><SimpleData name="HOUSE_NUMBER">${n}</SimpleData><SimpleData name="BLOCK">-</SimpleData><SimpleData name="FLOOR">-</SimpleData><SimpleData name="RT">-</SimpleData><SimpleData name="RW">-</SimpleData><SimpleData name="DISTRICT">${data.district
-                                }</SimpleData><SimpleData name="SUB_DISTRICT">${data.subDistrict}</SimpleData><SimpleData name="FDT_CODE">${fdtC}</SimpleData><SimpleData name="FAT_CODE">${fc}</SimpleData><SimpleData name="BUILDING_LATITUDE">${la.toFixed(
-                                    6
-                                )}</SimpleData><SimpleData name="BUILDING_LONGITUDE">${lo.toFixed(6)}</SimpleData><SimpleData name="Category_BizPass">${data.categoryBizPass}</SimpleData><SimpleData name="POST_CODE">${data.postCode
-                                }</SimpleData><SimpleData name="ADDRESS_POLE___FAT">-</SimpleData><SimpleData name="OV_UG">${data.ovUg
-                                }</SimpleData><SimpleData name="HOUSE_COMMENT_">${cmt}</SimpleData><SimpleData name="BUILDING_NAME">-</SimpleData><SimpleData name="TOWER">-</SimpleData><SimpleData name="APTN">-</SimpleData><SimpleData name="FIBER_NODE__HFC_">-</SimpleData><SimpleData name="ID_Area">${data.idArea
-                                }</SimpleData><SimpleData name="Clamp_Hook_ID">${hk}</SimpleData><SimpleData name="DEPLOYMENT_TYPE">${data.deploymentType}</SimpleData><SimpleData name="NEED_SURVEY">${data.needSurvey
-                                }</SimpleData></SchemaData></ExtendedData>`,
+                            data: `<ExtendedData><SchemaData schemaUrl="#S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS">
+                                <SimpleData name="HOMEPASS_ID">-</SimpleData>
+                                <SimpleData name="CLUSTER_NAME">${data.clusterName}</SimpleData>
+                                <SimpleData name="PREFIX_ADDRESS">${st.p}</SimpleData>
+                                <SimpleData name="STREET_NAME">${st.n}</SimpleData>
+                                <SimpleData name="HOUSE_NUMBER">${n}</SimpleData>
+                                <SimpleData name="BLOCK">-</SimpleData>
+                                <SimpleData name="FLOOR">-</SimpleData>
+                                <SimpleData name="RT">-</SimpleData>
+                                <SimpleData name="RW">-</SimpleData>
+                                <SimpleData name="DISTRICT">${data.district}</SimpleData>
+                                <SimpleData name="SUB_DISTRICT">${data.subDistrict}</SimpleData>
+                                <SimpleData name="FDT_CODE">${fdtC}</SimpleData>
+                                <SimpleData name="FAT_CODE">${fc}</SimpleData>
+                                <SimpleData name="BUILDING_LATITUDE">${la.toFixed(6)}</SimpleData>
+                                <SimpleData name="BUILDING_LONGITUDE">${lo.toFixed(6)}</SimpleData>
+                                <SimpleData name="Category_BizPass">${data.categoryBizPass}</SimpleData>
+                                <SimpleData name="POST_CODE">${data.postCode}</SimpleData>
+                                <SimpleData name="ADDRESS_POLE___FAT">-</SimpleData>
+                                <SimpleData name="OV_UG">${data.ovUg}</SimpleData>
+                                <SimpleData name="HOUSE_COMMENT_">${cmt}</SimpleData>
+                                <SimpleData name="BUILDING_NAME">-</SimpleData>
+                                <SimpleData name="TOWER">-</SimpleData>
+                                <SimpleData name="APTN">-</SimpleData>
+                                <SimpleData name="FIBER_NODE__HFC_">-</SimpleData>
+                                <SimpleData name="ADDRESS_POLE___FAT_2">-</SimpleData>
+                                <SimpleData name="ID_Area">${data.idArea}</SimpleData>
+                                <SimpleData name="Clamp_Hook_ID">${hk}</SimpleData>
+                                <SimpleData name="DEPLOYMENT_TYPE">${data.deploymentType}</SimpleData>
+                                <SimpleData name="NEED_SURVEY">${data.needSurvey}</SimpleData>
+                                </SchemaData></ExtendedData>`,
                         });
                     }
                 }
