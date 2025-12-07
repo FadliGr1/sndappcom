@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTDR Report Maker - SND App</title>
+
+    <!-- Library jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Library Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="main.css">
+
+    <style>
+        :root {
+            --chart-height: 300px;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 100px 1.5rem 1.5rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Form Styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .input-std {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .input-std:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        select.input-std {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007AFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 10px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #007aff, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+        }
+
+        /* SECURITY MODAL */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            /* Lebih gelap */
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .security-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .security-box {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-color);
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .security-overlay.show .security-box {
+            transform: scale(1);
+        }
+
+        .lock-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        .key-display {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            display: none;
+            text-align: left;
+        }
+
+        .key-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .key-code {
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--primary-color);
+            background: rgba(0, 122, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-copy-small {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .btn-copy-small:hover {
+            background: var(--bg-color);
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* FUN MODAL STYLE */
+        .fun-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+
+        .fun-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .fun-modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            transform: translateY(50px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .fun-modal-overlay.active .fun-modal-box {
+            transform: translateY(0);
+        }
+
+        .fun-emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: spin 3s infinite linear;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Hidden Canvas for Graph Generation */
+        #hiddenCanvas {
+            position: absolute;
+            left: -9999px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Global (Script.js) -->
+
+    <!-- SECURITY LOCK -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-box">
+            <div class="lock-icon">🔒</div>
+            <h2 style="margin:0 0 10px 0; color:var(--text-color);">Restricted Access</h2>
+            <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
+                Fitur ini memerlukan akses khusus.<br>Masukkan Kode Harian untuk lanjut.
+            </p>
+
+            <input type="password" id="accessKey" class="input-std" placeholder="Masukkan Kunci..."
+                style="text-align:center; font-size:1.2rem; letter-spacing:2px; margin-bottom:15px; padding: 12px;">
+
+            <button onclick="checkAccess()" class="btn-generate" style="margin-top:0;">Buka Kunci</button>
+
+            <!-- Area Key Generator (Hidden by default) -->
+            <div id="keyDisplayArea" class="key-display">
+                <div style="font-size:0.8rem; color:var(--success-color); font-weight:bold; margin-bottom:10px;">✅
+                    Master Access Granted!</div>
+
+                <div class="key-row">
+                    <span>Key Hari Ini:</span>
+                    <div>
+                        <span class="key-code" id="keyToday">KEY123</span>
+                        <button class="btn-copy-small" onclick="useKey('today')">Gunakan</button>
+                    </div>
+                </div>
+
+                <div class="key-row">
+                    <span>Key Besok:</span>
+                    <div>
+                        <span class="key-code" id="keyTmrw">KEY124</span>
+                        <button class="btn-copy-small" onclick="copyText('keyTmrw')">Salin</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FUN LOADING MODAL (Progress) -->
+    <div class="fun-modal-overlay" id="funModal">
+        <div class="fun-modal-box">
+            <div class="fun-emoji">🧪</div>
+            <h2 id="funTitle" style="color:#333; margin-bottom:10px;">Meracik Data...</h2>
+            <p id="funDesc" style="color:#666; line-height:1.5;">Sedang menghitung atom fiber optik...</p>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL (Replacement for Alert) -->
+    <div class="fun-modal-overlay" id="successModal">
+        <div class="fun-modal-box">
+            <div style="font-size: 4rem; margin-bottom: 1rem; animation: bounce 2s infinite;">🎉</div>
+            <h2 id="successTitle" style="color:#333; margin-bottom:10px;">Berhasil!</h2>
+            <p id="successDesc" style="color:#666; line-height:1.5; margin-bottom: 25px;"></p>
+            <button onclick="closeSuccessModal()" class="btn-generate"
+                style="margin: 0 auto; width: auto; padding: 12px 30px; background: var(--success-color);">Siap
+                Ndan!</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+
+        <div style="text-align:center; margin-bottom:2rem;">
+            <h1 style="margin:0; font-size:2rem;">OTDR Report Maker</h1>
+            <p style="color:var(--text-muted);">Generator Laporan PDF Manual</p>
+        </div>
+
+        <form id="otdrForm" onsubmit="event.preventDefault(); generateReport();">
+            <div class="form-grid">
+
+                <!-- KOLOM KIRI: PARAMETER OTDR -->
+                <div class="form-section">
+                    <h3>Parameter OTDR</h3>
+
+                    <div class="form-group">
+                        <label>Panjang Kabel (km) *</label>
+                        <input type="number" step="0.001" id="cableLength" class="input-std" required
+                            placeholder="Contoh: 2.091">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Panjang Gelombang</label>
+                        <select id="wavelength" class="input-std">
+                            <option value="1310 nm (Singlemode)">1310 nm</option>
+                            <option value="1550 nm (Singlemode)">1550 nm</option>
+                            <option value="1625 nm (Singlemode)">1625 nm</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Lebar Pulsa (Pulse Width)</label>
+                        <select id="pulseWidth" class="input-std">
+                            <option value="10 ns">10 ns</option>
+                            <option value="30 ns">30 ns</option>
+                            <option value="50 ns">50 ns</option>
+                            <option value="80 ns" selected>80 ns</option>
+                            <option value="100 ns">100 ns</option>
+                            <option value="300 ns">300 ns</option>
+                            <option value="1000 ns">1000 ns</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Indeks Bias (IOR)</label>
+                        <input type="number" step="0.00001" id="ior" class="input-std" value="1.46800">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ambang Rugi (Loss Threshold) dB</label>
+                        <input type="number" step="0.001" id="lossThres" class="input-std" value="0.200">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ambang Refleksi (Refl. Threshold) dB</label>
+                        <input type="number" step="0.001" id="reflThres" class="input-std" value="-40.000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Jangkauan (Range) km</label>
+                        <input type="number" step="0.001" id="range" class="input-std" value="2.091">
+                    </div>
+                </div>
+
+                <!-- KOLOM KANAN: INFORMASI & DEVICE -->
+                <div class="form-section">
+                    <h3>Informasi & Device</h3>
+
+                    <div class="form-group">
+                        <label>Tanggal Test</label>
+                        <input type="datetime-local" id="testDate" class="input-std">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Model OTDR</label>
+                        <select id="otdrModel" class="input-std" onchange="checkCustom(this, 'customOtdr')">
+                            <option value="FC3200">FC3200</option>
+                            <option value="ANRITSU MT9090A">ANRITSU MT9090A</option>
+                            <option value="YOKOGAWA AQ7280">YOKOGAWA AQ7280</option>
+                            <option value="YOKOGAWA AQ1000">YOKOGAWA AQ1000</option>
+                            <option value="EXFO MAX-730C">EXFO MAX-730C</option>
+                            <option value="EXFO FTB-720C">EXFO FTB-720C</option>
+                            <option value="GRANDWAY FHO5000">GRANDWAY FHO5000</option>
+                            <option value="Custom">Custom...</option>
+                        </select>
+                        <input type="text" id="customOtdr" class="input-std" style="display:none; margin-top:5px;"
+                            placeholder="Ketik Model OTDR...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Serial Number OTDR</label>
+                        <input type="text" id="snOtdr" class="input-std" value="0901001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Model Module</label>
+                        <select id="moduleModel" class="input-std" onchange="checkCustom(this, 'customModule')">
+                            <option value="3537">3537</option>
+                            <option value="ANRITSU MU909014B-056">ANRITSU MU909014B-056</option>
+                            <option value="ANRITSU MU909015A6">ANRITSU MU909015A6</option>
+                            <option value="YOKOGAWA AQ2200">YOKOGAWA AQ2200</option>
+                            <option value="EXFO FTB-720-023B">EXFO FTB-720-023B</option>
+                            <option value="EXFO FTBx-730C">EXFO FTBx-730C</option>
+                            <option value="Custom">Custom...</option>
+                        </select>
+                        <input type="text" id="customModule" class="input-std" style="display:none; margin-top:5px;"
+                            placeholder="Ketik Model Module...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Serial Number Module</label>
+                        <input type="text" id="snModule" class="input-std" value="0901001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Supplier / Vendor</label>
+                        <select id="supplier" class="input-std" onchange="checkCustom(this, 'customSupplier')">
+                            <option value="FIBERCLOUD">FIBERCLOUD</option>
+                            <option value="ANRITSU">ANRITSU</option>
+                            <option value="YOKOGAWA">YOKOGAWA</option>
+                            <option value="EXFO">EXFO</option>
+                            <option value="VIAVI">VIAVI</option>
+                            <option value="GRANDWAY">GRANDWAY</option>
+                            <option value="Custom">Custom...</option>
+                        </select>
+                        <input type="text" id="customSupplier" class="input-std" style="display:none; margin-top:5px;"
+                            placeholder="Ketik Nama Supplier...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nama File Output (Tanpa Ekstensi)</label>
+                        <input type="text" id="filename" class="input-std" placeholder="FRL079_A09_1310">
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULT SECTION -->
+            <div class="form-section" style="margin-top:1.5rem;">
+                <h3>Hasil Pengukuran (Event)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Total Loss (dB)</label>
+                        <input type="number" step="0.001" id="totalLoss" class="input-std" value="0.332">
+                    </div>
+                    <div class="form-group">
+                        <label>Attenuation (dB/km)</label>
+                        <input type="number" step="0.001" id="attenuation" class="input-std" value="0.350">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:1.5rem;">
+                <button type="submit" class="btn-generate">
+                    📄 Generate PDF Report
+                </button>
+                <button type="button" class="btn-generate" onclick="fakeSorDownload()"
+                    style="background:var(--success-color);">
+                    💾 Generate .SOR (Simulasi)
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Hidden Canvas for Graph -->
+    <canvas id="hiddenCanvas" width="800" height="300"></canvas>
+
+    <!-- Script Global -->
+    <script src="script.js"></script>
+
+    <script>
+        // === 1. SMART SECURITY LOGIC (24H Access) ===
+        const masterKey = "sndapp.com";
+        const today = new Date();
+        // Key algorithm: KEY + (Date + Month + 77)
+        const dailyKey = "KEY" + (today.getDate() + today.getMonth() + 77);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const tomorrowKey = "KEY" + (tomorrow.getDate() + tomorrow.getMonth() + 77);
+
+        // Check Auth on Load
+        function initSecurity() {
+            const overlay = document.getElementById('securityOverlay');
+            const authData = localStorage.getItem('otdr_auth');
+
+            if (authData) {
+                const { key, timestamp } = JSON.parse(authData);
+                const now = new Date().getTime();
+                // Validasi: Key harus sama dengan hari ini dan belum lewat 24 jam
+                if (key === dailyKey && (now - timestamp < 24 * 60 * 60 * 1000)) {
+                    overlay.classList.remove('show'); // Hide overlay
+                    return;
+                }
+            }
+
+            // Jika belum auth atau expired
+            overlay.classList.add('show');
+
+            // Set keys for display (hidden initially)
+            document.getElementById('keyToday').innerText = dailyKey;
+            document.getElementById('keyTmrw').innerText = tomorrowKey;
+        }
+
+        function checkAccess() {
+            const input = document.getElementById('accessKey').value.trim();
+            const keyDisplay = document.getElementById('keyDisplayArea');
+            const overlay = document.getElementById('securityOverlay');
+
+            if (input === masterKey) {
+                // Master Key: Tampilkan Kode Harian
+                keyDisplay.style.display = 'block';
+            } else if (input === dailyKey) {
+                // User Key: Grant Access
+                grantAccess();
+            } else {
+                alert("Kunci Salah! Silakan coba lagi.");
+            }
+        }
+
+        function grantAccess() {
+            const overlay = document.getElementById('securityOverlay');
+
+            // Simpan sesi ke LocalStorage (24 Jam)
+            const session = {
+                key: dailyKey,
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem('otdr_auth', JSON.stringify(session));
+
+            // Animasi Keluar
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.visibility = 'hidden';
+                overlay.classList.remove('show');
+            }, 300);
+        }
+
+        function useKey(type) {
+            const key = type === 'today' ? dailyKey : tomorrowKey;
+            document.getElementById('accessKey').value = key;
+            grantAccess();
+        }
+
+        function copyText(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("Key disalin: " + text);
+        }
+
+        // Run Security Check
+        initSecurity();
+
+
+        // === 2. UI UTILS ===
+        document.getElementById('testDate').value = new Date().toISOString().slice(0, 16);
+
+        function checkCustom(select, inputId) {
+            const input = document.getElementById(inputId);
+            if (select.value === 'Custom') {
+                input.style.display = 'block';
+                input.required = true;
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+            }
+        }
+
+        function getVal(id) {
+            const el = document.getElementById(id);
+            if (el.tagName === 'SELECT' && el.value === 'Custom') {
+                if (id === 'otdrModel') return document.getElementById('customOtdr').value;
+                if (id === 'moduleModel') return document.getElementById('customModule').value;
+                if (id === 'supplier') return document.getElementById('customSupplier').value;
+            }
+            return el.value;
+        }
+
+        // === 3. REALISTIC GRAPH GENERATOR ===
+        function generateRealisticTrace(ctx, rangeVal) {
+            // Generate data points
+            const points = 300; // Lebih banyak point biar halus
+            const labels = [];
+            const dataPoints = [];
+
+            let currentDb = 35 + (Math.random() * 2); // Start level agak random
+            const lossPerKm = 0.22; // Typical 1310nm loss
+            const stepKm = rangeVal / points;
+
+            // Event locations (randomized sedikit)
+            const event1 = Math.floor(points * 0.3); // Konektor 1
+            const event2 = Math.floor(points * 0.7); // Splice 1
+            const endEvent = points - 5; // Ujung kabel
+
+            for (let i = 0; i <= points; i++) {
+                const dist = i * stepKm;
+                labels.push(dist.toFixed(2));
+
+                // Normal attenuation
+                currentDb -= (lossPerKm * stepKm);
+
+                // Add Noise (biar real)
+                let noise = (Math.random() - 0.5) * 0.15;
+
+                // Event Logic
+                if (i === event1) {
+                    // Connector: Reflection spike then drop
+                    noise += 1.5; // Spike
+                    currentDb -= 0.5; // Loss
+                } else if (i === event1 + 1) {
+                    // Recovery from spike
+                    noise -= 0.5;
+                }
+
+                if (i === event2) {
+                    // Splice: Just drop, no spike
+                    currentDb -= 0.1;
+                }
+
+                if (i >= endEvent) {
+                    // End of fiber: Drop drastis ke noise floor
+                    currentDb = -50 + (Math.random() * 5); // Noise floor
+                }
+
+                dataPoints.push(currentDb + noise);
+            }
+
+            // Render Chart
+            if (window.myChart) window.myChart.destroy();
+
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataPoints,
+                        borderColor: '#000000',
+                        borderWidth: 1.2,
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0.1 // Sedikit smooth biar ga kaku bgt
+                    }]
+                },
+                options: {
+                    animation: false,
+                    responsive: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: { display: true, text: 'km', color: '#333', font: { size: 10, weight: 'bold' } },
+                            ticks: { maxTicksLimit: 6, color: '#333', font: { size: 9 } },
+                            grid: { color: '#e0e0e0' }
+                        },
+                        y: {
+                            display: true,
+                            title: { display: true, text: 'dB', color: '#333', font: { size: 10, weight: 'bold' } },
+                            ticks: { color: '#333', font: { size: 9 } },
+                            grid: { color: '#e0e0e0' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // === 4. PDF GENERATION ===
+        async function generateReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // --- A. GRAPHIC ---
+            const canvas = document.getElementById('hiddenCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Bersihkan canvas dulu (background putih)
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            generateRealisticTrace(ctx, parseFloat(getVal('range')));
+
+            // Tunggu render
+            await new Promise(r => setTimeout(r, 200));
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+            // --- B. PDF LAYOUT ---
+
+            // 1. Watermark
+            doc.saveGraphicsState();
+            doc.setGState(new doc.GState({ opacity: 0.15 }));
+            doc.setFontSize(60);
+            doc.setTextColor(150);
+            doc.text("SNDAPP.COM", 105, 148, { align: 'center', angle: 45 });
+            doc.text("SNDAPP.COM", 105, 50, { align: 'center', angle: 45 });
+            doc.text("SNDAPP.COM", 105, 250, { align: 'center', angle: 45 });
+            doc.restoreGraphicsState();
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(0);
+
+            // Header Halaman
+            doc.text("--- PAGE 1 ---", 105, 10, { align: 'center' });
+
+            // Box Kiri
+            let y = 20;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+
+            const addLine = (label, val) => {
+                doc.text(`${label}: ${val}`, 15, y);
+                y += 5;
+            };
+
+            addLine("Begin", "0");
+            addLine("Cable", "0");
+            addLine("Range", `${getVal('range')} km`);
+
+            // Wavelength Multi-line style
+            doc.text(`Wavelength:`, 15, y);
+            doc.text(`${getVal('wavelength')}`, 45, y); y += 5;
+
+            addLine("Loss Threshold", `${getVal('lossThres')} dB`);
+            y += 3;
+
+            addLine("Date", getVal('testDate').replace('T', ' '));
+            addLine("OTDR", `${getVal('otdrModel')} S/N: ${getVal('snOtdr')}`);
+            addLine("Module", `${getVal('moduleModel')} S/N: ${getVal('snModule')}`);
+            y += 3;
+
+            addLine("Customer", getVal('customOtdr') || '');
+            addLine("Supplier", getVal('supplier'));
+            addLine("Comment", "0");
+            y += 3;
+
+            const fiberLen = parseFloat(getVal('cableLength')).toFixed(4).replace('.', ',');
+            doc.text(`Fiber Length: ${fiberLen} km`, 15, y); y += 5;
+            doc.text(`Attenuation: ${getVal('attenuation')} dB/km`, 15, y);
+
+            // Box Kanan
+            y = 20;
+            const xRight = 120;
+            const addRight = (label, val) => {
+                doc.text(`${label}: ${val}`, xRight, y);
+                y += 5;
+            }
+
+            addRight("End", "0");
+            addRight("Fiber", "0");
+            addRight("Pulse Width", getVal('pulseWidth'));
+
+            y += 5; // Spasi
+            addRight("Refractive index", getVal('ior'));
+            addRight("Refl. Threshold", `${getVal('reflThres')} dB`);
+
+            y += 5;
+            const fName = getVal('filename') || "OTDR_Report";
+            doc.text(`File: ${fName}.sor`, xRight, y); y += 5;
+            doc.text(`Job Name:`, xRight, y);
+
+            // JUDUL TENGAH
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("OTDR Report", 105, 60, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text("Parameters", 105, 67, { align: 'center' });
+
+            // SUMMARY BOX
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
+            doc.rect(15, 100, 180, 15);
+            doc.setFontSize(11);
+            doc.text("Summary", 18, 105);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Total Loss: ${getVal('totalLoss')} dB`, 18, 111);
+
+            // TRACE GRAPH
+            doc.setFont("helvetica", "bold");
+            doc.text("Trace", 105, 125, { align: 'center' });
+
+            // Insert Chart Image
+            doc.addImage(imgData, 'JPEG', 15, 128, 180, 80);
+
+            // EVENT TABLE
+            let yTable = 215;
+            doc.text("Event Table", 15, yTable);
+            yTable += 5;
+
+            const headers = ["No", "Type", "Distance, km", "Loss, dB", "Reflection, dB", "Attenuation, dB/km"];
+            const colX = [15, 25, 60, 90, 120, 160];
+
+            doc.setLineWidth(0.3);
+            doc.line(15, yTable, 195, yTable); // Top line
+            yTable += 5;
+
+            doc.setFontSize(9);
+            headers.forEach((h, i) => doc.text(h, colX[i], yTable));
+
+            yTable += 3;
+            doc.line(15, yTable, 195, yTable); // Bottom header line
+            yTable += 5;
+
+            // Row 1: Begin
+            doc.setFont("helvetica", "normal");
+            doc.text("1", colX[0], yTable);
+            doc.text("Begin", colX[1], yTable);
+            doc.text("0,000", colX[2], yTable);
+
+            yTable += 6;
+            // Row 2: End
+            doc.text("2", colX[0], yTable);
+            doc.text("End", colX[1], yTable);
+            doc.text(fiberLen, colX[2], yTable);
+            doc.text("-", colX[3], yTable);
+            doc.text("-", colX[4], yTable);
+            doc.text(getVal('attenuation').replace('.', ','), colX[5], yTable);
+
+            // Save PDF
+            doc.save(`${fName}.pdf`);
+        }
+
+        // === 5. FUN ALERT SYSTEM ===
+        function fakeSorDownload() {
+            const modal = document.getElementById('funModal');
+            const title = document.getElementById('funTitle');
+            const desc = document.getElementById('funDesc');
+
+            const msgs = [
+                { t: "Mengurai Binary...", d: "Membaca struktur molekul kabel optik..." },
+                { t: "Injecting Noise...", d: "Menambahkan sedikit bumbu biar terlihat real..." },
+                { t: "Menyusun Block...", d: "Memanggil arwah Bellcore GR-196..." },
+                { t: "Finishing...", d: "Hampir jadi, jangan kedip!" }
+            ];
+
+            modal.classList.add('active');
+            let i = 0;
+
+            const interval = setInterval(() => {
+                title.innerText = msgs[i].t;
+                desc.innerText = msgs[i].d;
+                i = (i + 1) % msgs.length;
+            }, 800);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                modal.classList.remove('active');
+
+                // Download Fake File
+                const content = "SOR FILE GENERATED BY SNDAPP.COM\n(Disclaimer: This is a simulation file for reporting purpose only.)";
+                const blob = new Blob([content], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                const fName = document.getElementById('filename').value || "Report";
+                a.href = url;
+                a.download = `${fName}.sor`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Show final success fun alert
+                setTimeout(() => {
+                    showSuccessModal("File .SOR (Simulasi) Berhasil Diunduh!", "Ingat: File ini hanya untuk pelengkap administrasi, isinya teks biasa.");
+                }, 500);
+            }, 3500);
+        }
+
+        function showSuccessModal(title, desc) {
+            document.getElementById('successTitle').innerText = title;
+            document.getElementById('successDesc').innerText = desc;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>
