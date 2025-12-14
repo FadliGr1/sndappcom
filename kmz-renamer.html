@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMZ Renamer Pro - SND App</title>
+
+    <!-- Library JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="main.css">
+
+    <style>
+        /* === UI CUSTOMIZATION === */
+        :root {
+            --bg-color: #F5F5F7;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #000000;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* LAYOUT 3 KOLOM */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            /* Kiri - Tengah - Kanan */
+            gap: 1.2rem;
+            height: 100%;
+            padding: 100px 1.5rem 1.5rem 1.5rem;
+            box-sizing: border-box;
+        }
+
+        /* Panel Generic Style */
+        .panel-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            overflow-y: auto;
+            height: 100%;
+            padding-bottom: 10px;
+            /* Space bawah */
+        }
+
+        /* Scrollbar Halus */
+        .panel-col::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-col::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
+        }
+
+        /* --- CARD STYLES --- */
+        .card-soft {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: 0.3s;
+        }
+
+        /* Input Styles */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .input-soft {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .input-soft:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        /* Upload Area */
+        .upload-compact {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(0, 122, 255, 0.02);
+            transition: 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+
+        .upload-compact:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.01);
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .upload-compact.active {
+            border-color: var(--success-color);
+            background: rgba(52, 199, 89, 0.1);
+        }
+
+        #fileInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* --- TABLE PREVIEW (CENTER) --- */
+        .table-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            /* Full height column */
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--accent-bg);
+        }
+
+        .table-scroll {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-color);
+            z-index: 5;
+        }
+
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        tr:hover td {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .badge-new {
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* --- MONITOR PANEL (RIGHT) --- */
+        .monitor-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            height: 100%;
+        }
+
+        .monitor-header {
+            background: var(--accent-bg);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #34C759;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34C759;
+            animation: pulse 2s infinite;
+        }
+
+        .monitor-log-area {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--bg-color);
+        }
+
+        .log-bubble {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1.4;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .log-bubble.success {
+            border-color: var(--success-color);
+        }
+
+        .log-bubble.error {
+            border-color: var(--error-color);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        /* FUN PROGRESS BAR */
+        .progress-section {
+            padding: 15px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #007aff, #34c759);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            min-height: 1.2em;
+        }
+
+        .monitor-footer {
+            padding: 1rem;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: auto;
+                padding-top: 90px;
+            }
+
+            .panel-col {
+                height: auto;
+                overflow: visible;
+            }
+
+            .monitor-panel {
+                height: 500px;
+                margin-bottom: 2rem;
+            }
+
+            .table-wrapper {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header via Script Global -->
+
+    <div class="dashboard-container">
+
+        <!-- KOLOM 1: INPUT & CONFIG -->
+        <div class="panel-col animate-up">
+
+            <div class="tool-header-mini" style="margin-bottom: 0.5rem;">
+                <div>
+                    <h1 class="tool-title" style="font-size: 1.5rem;">Renamer Pro</h1>
+                    <p class="tool-desc">Rename Massal & Cleaning</p>
+                </div>
+            </div>
+
+            <!-- Card Config -->
+            <div class="card-soft">
+                <div class="section-label"
+                    style="color:var(--primary-color); font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem;">
+                    1. Konfigurasi</div>
+
+                <div class="input-group">
+                    <label class="input-label">Pola Nama Baru</label>
+                    <input type="text" id="namePattern" class="input-soft" placeholder="Contoh: Tiang, FAT..."
+                        value="Foto">
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">Hasil: Foto-1, Foto-2...
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Mulai Nomor</label>
+                    <input type="number" id="startNumber" class="input-soft" value="1" min="1">
+                </div>
+            </div>
+
+            <!-- Card Upload -->
+            <div class="upload-compact" id="dropZone">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🪄</div>
+                <p style="color:var(--text-muted); margin:0; font-weight:500;">Drop <strong>.KMZ</strong> di sini</p>
+                <span id="fileNameDisplay"
+                    style="display:block; margin-top:8px; font-weight:700; color:var(--primary-color); font-size:0.85rem;"></span>
+                <input type="file" id="fileInput" accept=".kmz,.kml">
+            </div>
+
+        </div>
+
+        <!-- KOLOM 2: PREVIEW TABLE (BIGGER) -->
+        <div class="panel-col animate-up delay-1">
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <div style="font-weight:700; color:var(--text-color); display:flex; align-items:center; gap:8px;">
+                        <span>📋 Preview Data</span>
+                        <span id="itemCount"
+                            style="background:var(--bg-color); padding:2px 8px; border-radius:12px; font-size:0.75rem; color:var(--text-muted);">0
+                            item</span>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table id="previewTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>Original Name</th>
+                                <th>New Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding: 3rem; color:var(--text-muted);">
+                                    <div style="font-size:2rem; opacity:0.3; margin-bottom:10px;">👀</div>
+                                    Upload file untuk melihat preview
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- KOLOM 3: MONITOR & ACTIONS -->
+        <aside class="panel-col monitor-panel animate-up delay-2">
+            <div class="monitor-header">
+                <div class="monitor-title">
+                    <div class="pulse-dot"></div> Processing Center
+                </div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">LIVE</div>
+            </div>
+
+            <!-- LOG AREA FULL -->
+            <div class="monitor-log-area" id="log">
+                <div style="text-align:center; color:var(--text-muted); margin-top:50%;">
+                    <div style="font-size:2rem; margin-bottom:10px; opacity:0.5;">🧹</div>
+                    <p style="font-size:0.85rem;">Menunggu instruksi...</p>
+                </div>
+            </div>
+
+            <!-- FUN LOADING BAR -->
+            <div class="progress-section">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">Siap bekerja! 👷</div>
+            </div>
+
+            <div class="monitor-footer">
+                <button id="btnProcess" class="btn-action btn-primary" style="width:100%;" disabled>
+                    <span>⚡ Proses File</span>
+                </button>
+
+                <div id="downloadArea"
+                    style="display:none; gap:10px; flex-direction:column; animation: popIn 0.3s ease;">
+                    <div style="height:1px; background:var(--border-color); margin: 5px 0;"></div>
+                    <button onclick="app.downloadFile(true)" class="btn-action"
+                        style="background:#007aff; color:white; width:100%;">
+                        📸 Download Full (Foto)
+                    </button>
+                    <button onclick="app.downloadFile(false)" class="btn-action btn-secondary" style="width:100%;">
+                        🧹 Download Clean (Tanpa Foto)
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Script Global -->
+    <script src="script.js"></script>
+
+    <script>
+        class RenamerApp {
+            constructor() {
+                this.zipContent = null;
+                this.kmlContent = null;
+                this.kmlFilename = null;
+                this.originalFilename = '';
+                this.placemarks = [];
+                this.generatedBlobs = { full: null, clean: null };
+
+                // Fun Loading Messages
+                this.loadingMessages = [
+                    "Memanggil dukun koding... 🧙‍♂️",
+                    "Menghitung jumlah mantan... 💔",
+                    "Menyusun pixel satu per satu... 🧱",
+                    "Mengaduk kopi virtual... ☕",
+                    "Mencari jarum di tumpukan binary... 🪡",
+                    "Menyuap penjaga server... 💰",
+                    "Sedang loading... sabar ya... 🐢",
+                    "Mengkalibrasi satelit NASA... 🛰️"
+                ];
+
+                this.ui = {
+                    dropZone: document.getElementById('dropZone'),
+                    fileInput: document.getElementById('fileInput'),
+                    namePattern: document.getElementById('namePattern'),
+                    startNumber: document.getElementById('startNumber'),
+                    fileNameDisplay: document.getElementById('fileNameDisplay'),
+                    tableBody: document.getElementById('tableBody'),
+                    itemCount: document.getElementById('itemCount'),
+                    log: document.getElementById('log'),
+                    btnProcess: document.getElementById('btnProcess'),
+                    downloadArea: document.getElementById('downloadArea'),
+                    progressBar: document.getElementById('progressBar'),
+                    progressText: document.getElementById('progressText')
+                };
+
+                this.initEvents();
+            }
+
+            initEvents() {
+                // Drag & Drop
+                this.ui.dropZone.addEventListener('dragover', e => { e.preventDefault(); this.ui.dropZone.classList.add('active'); });
+                this.ui.dropZone.addEventListener('dragleave', () => this.ui.dropZone.classList.remove('active'));
+                this.ui.dropZone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    this.ui.dropZone.classList.remove('active');
+                    if (e.dataTransfer.files.length) this.loadFile(e.dataTransfer.files[0]);
+                });
+
+                this.ui.fileInput.addEventListener('change', e => {
+                    if (e.target.files.length) this.loadFile(e.target.files[0]);
+                });
+
+                this.ui.namePattern.addEventListener('input', () => this.renderPreview());
+                this.ui.startNumber.addEventListener('input', () => this.renderPreview());
+                this.ui.btnProcess.addEventListener('click', () => this.processFiles());
+            }
+
+            log(msg, type = 'info') {
+                if (this.ui.log.innerText.includes("Menunggu instruksi")) this.ui.log.innerHTML = '';
+                const d = document.createElement('div');
+                d.className = `log-bubble ${type}`;
+                const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                d.innerHTML = `<span style="font-size:0.65rem; color:var(--text-muted); display:block; margin-bottom:2px;">${time}</span>${msg}`;
+                this.ui.log.appendChild(d);
+                this.ui.log.scrollTop = this.ui.log.scrollHeight;
+            }
+
+            updateProgress(percent, text = null) {
+                this.ui.progressBar.style.width = `${percent}%`;
+                if (text) this.ui.progressText.innerText = text;
+                else if (percent < 100) {
+                    // Random funny message
+                    const msg = this.loadingMessages[Math.floor(Math.random() * this.loadingMessages.length)];
+                    this.ui.progressText.innerText = msg;
+                }
+            }
+
+            async loadFile(file) {
+                if (!file.name.match(/\.(kmz|kml)$/i)) { alert("Format file harus .KMZ atau .KML"); return; }
+
+                this.originalFilename = file.name.replace(/\.(kmz|kml)$/i, "");
+                this.ui.fileNameDisplay.textContent = file.name;
+                this.ui.btnProcess.disabled = true;
+                this.ui.downloadArea.style.display = 'none';
+                this.updateProgress(0, "Membaca file...");
+
+                this.log(`Membaca file: <strong>${file.name}</strong>... 📂`);
+
+                try {
+                    if (file.name.toLowerCase().endsWith('.kmz')) {
+                        const zip = new JSZip();
+                        this.zipContent = await zip.loadAsync(file);
+                        for (const filename of Object.keys(this.zipContent.files)) {
+                            if (filename.toLowerCase().endsWith('.kml')) {
+                                this.kmlFilename = filename;
+                                this.kmlContent = await this.zipContent.files[filename].async('string');
+                                break;
+                            }
+                        }
+                        if (!this.kmlContent) throw new Error("File KML tidak ditemukan dalam KMZ.");
+                    } else {
+                        this.kmlContent = await file.text();
+                        this.zipContent = null;
+                    }
+
+                    this.parsePlacemarks();
+                    this.renderPreview();
+                    this.ui.btnProcess.disabled = false;
+                    this.updateProgress(100, "File siap diproses! 🚀");
+                    this.log(`Berhasil memuat ${this.placemarks.length} placemark.`, 'success');
+
+                } catch (e) {
+                    console.error(e);
+                    this.log(`Error: ${e.message}`, 'error');
+                    this.updateProgress(0, "Gagal memuat file ❌");
+                }
+            }
+
+            parsePlacemarks() {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(this.kmlContent, "text/xml");
+                const pms = xmlDoc.querySelectorAll("Placemark");
+                this.placemarks = [];
+                pms.forEach((pm, index) => {
+                    const nameNode = pm.querySelector("name");
+                    const oldName = nameNode ? nameNode.textContent : `Placemark ${index + 1}`;
+                    this.placemarks.push({ oldName });
+                });
+                if (this.placemarks.length === 0) throw new Error("Tidak ada Placemark yang ditemukan.");
+            }
+
+            renderPreview() {
+                if (!this.placemarks.length) return;
+                const pattern = this.ui.namePattern.value || "Item";
+                const startNum = parseInt(this.ui.startNumber.value) || 1;
+
+                let html = '';
+                const limit = Math.min(this.placemarks.length, 100);
+
+                for (let i = 0; i < limit; i++) {
+                    const newName = `${pattern}-${startNum + i}`;
+                    html += `<tr>
+                        <td style="color:var(--text-muted);">${i + 1}</td>
+                        <td style="color:var(--text-muted);">${this.placemarks[i].oldName}</td>
+                        <td><span class="badge-new">${newName}</span></td>
+                    </tr>`;
+                }
+                if (this.placemarks.length > limit) html += `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">... dan ${this.placemarks.length - limit} item lainnya ...</td></tr>`;
+
+                this.ui.tableBody.innerHTML = html;
+                this.ui.itemCount.textContent = `${this.placemarks.length} Items`;
+            }
+
+            async processFiles() {
+                this.ui.btnProcess.disabled = true;
+                const pattern = this.ui.namePattern.value || "Item";
+                const startNum = parseInt(this.ui.startNumber.value) || 1;
+
+                this.log(`Memulai proses rename... 🚀`);
+
+                // Fun Simulation
+                let p = 0;
+                const interval = setInterval(() => {
+                    p += 5;
+                    if (p > 90) clearInterval(interval);
+                    this.updateProgress(p);
+                }, 100);
+
+                try {
+                    // Logic processing (simulated heavy work)
+                    await new Promise(r => setTimeout(r, 1000));
+
+                    this.log("Membuat versi Full (Rename + Foto)... 📸");
+                    const fullKml = this.modifyKml(pattern, startNum, false);
+                    this.generatedBlobs.full = await this.packageFile(fullKml, true);
+
+                    this.log("Membuat versi Clean (Rename + Hapus Deskripsi)... 🧹");
+                    const cleanKml = this.modifyKml(pattern, startNum, true);
+                    this.generatedBlobs.clean = await this.packageFile(cleanKml, false);
+
+                    clearInterval(interval);
+                    this.updateProgress(100, "Selesai! 🎉");
+                    this.log("Proses Selesai! File siap didownload.", 'success');
+                    this.ui.downloadArea.style.display = 'flex';
+
+                } catch (e) {
+                    clearInterval(interval);
+                    this.log(`Gagal: ${e.message}`, 'error');
+                    this.updateProgress(0, "Error Terjadi 💥");
+                } finally {
+                    this.ui.btnProcess.disabled = false;
+                }
+            }
+
+            modifyKml(pattern, startNum, isCleanMode) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(this.kmlContent, "text/xml");
+                const placemarks = xmlDoc.querySelectorAll("Placemark");
+
+                placemarks.forEach((pm, index) => {
+                    const newName = `${pattern}-${startNum + index}`;
+                    let nameNode = pm.querySelector("name");
+                    if (!nameNode) {
+                        nameNode = xmlDoc.createElement("name");
+                        pm.prepend(nameNode);
+                    }
+                    nameNode.textContent = newName;
+
+                    if (isCleanMode) {
+                        const descNode = pm.querySelector("description");
+                        if (descNode) {
+                            // HAPUS TOTAL isi description (termasuk CDATA foto)
+                            while (descNode.firstChild) {
+                                descNode.removeChild(descNode.firstChild);
+                            }
+                            pm.removeChild(descNode); // Hapus tag descriptionnya juga biar bersih
+                        }
+                    }
+                });
+                return new XMLSerializer().serializeToString(xmlDoc);
+            }
+
+            async packageFile(kmlString, includeImages) {
+                const outZip = new JSZip();
+                outZip.file("doc.kml", kmlString);
+
+                if (includeImages && this.zipContent) {
+                    for (const filename of Object.keys(this.zipContent.files)) {
+                        if (!filename.toLowerCase().endsWith('.kml')) {
+                            const content = await this.zipContent.files[filename].async('blob');
+                            outZip.file(filename, content);
+                        }
+                    }
+                }
+                return await outZip.generateAsync({ type: "blob" });
+            }
+
+            downloadFile(isFull) {
+                const blob = isFull ? this.generatedBlobs.full : this.generatedBlobs.clean;
+                if (!blob) return;
+                const suffix = isFull ? "_FULL" : "_CLEAN";
+                const filename = `${this.originalFilename}${suffix}.kmz`;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                this.log(`Mengunduh: ${filename}`, 'success');
+            }
+        }
+
+        const app = new RenamerApp();
+    </script>
+</body>
+
+</html>

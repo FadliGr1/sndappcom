@@ -451,7 +451,7 @@
         <div class="floating-shape shape-2"></div>
 
         <div class="hero-pill">
-            🎉 <span>New Update:</span> OTDR Report Maker & 3D Globe Pro
+            🎉 <span>New Update:</span> KMZ Renamer Pro & OTDR Report
         </div>
         <h1>Otomatisasi Pekerjaan<br>Survey & Design Fiber Optik</h1>
         <p>Toolkit lengkap untuk Engineer dan Drafter. Proses metadata, konversi format, dan manajemen aset FTTH dalam
@@ -462,13 +462,33 @@
     <div class="category-tabs">
         <div class="tab-btn active" onclick="filterTools('all', this)">Semua Tools</div>
         <div class="tab-btn" onclick="filterTools('new', this)">Terbaru ✨</div>
-        <div class="tab-btn" onclick="filterTools('coming-soon', this)">Coming Soon 🚧</div>
+        <div class="tab-btn" onclick="filterTools('tools', this)">Utility 🛠️</div>
     </div>
 
     <section class="tools-section">
         <div class="grid" id="toolsGrid">
 
-            <!-- Card 1: OTDR Report Maker (New) -->
+            <!-- Card 1: KMZ Renamer Pro (NEW) -->
+            <div class="card tool-item" data-category="new">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </div>
+                    <span class="compat-badge badge-pro">New Release</span>
+                </div>
+                <div>
+                    <h3>KMZ Renamer Pro</h3>
+                    <p>Ubah nama placemark secara massal (Pola Angka). Fitur andalan: <strong>Clean Mode</strong> untuk
+                        menghapus foto/deskripsi hingga bersih total.</p>
+                </div>
+                <a href="kmz-renamer.html" class="btn-soft">Rename KMZ</a>
+            </div>
+
+            <!-- Card 2: OTDR Report Maker -->
             <div class="card tool-item" data-category="new">
                 <div class="card-header">
                     <div class="card-icon">
@@ -481,7 +501,7 @@
                             <polyline points="10 9 9 9 8 9" />
                         </svg>
                     </div>
-                    <span class="compat-badge badge-pro">New Release</span>
+                    <span class="compat-badge badge-pro">Best Seller</span>
                 </div>
                 <div>
                     <h3>OTDR Report Maker <span class="version-tag">PRO</span></h3>
@@ -491,7 +511,7 @@
                 <a href="otdr-maker.html" class="btn-soft">Buat Laporan</a>
             </div>
 
-            <!-- Card 2: ABD Maker -->
+            <!-- Card 3: ABD Maker -->
             <div class="card tool-item" data-category="tools">
                 <div class="card-header">
                     <div class="card-icon">
@@ -513,7 +533,7 @@
                 <a href="abd-maker-ln.html" class="btn-soft">Buka Tools</a>
             </div>
 
-            <!-- Card 3: Metadata Extractor -->
+            <!-- Card 4: Metadata Extractor -->
             <div class="card tool-item" data-category="tools">
                 <div class="card-header">
                     <div class="card-icon">
@@ -534,7 +554,7 @@
                 <a href="estocsv.html" class="btn-soft">Buka Tools</a>
             </div>
 
-            <!-- Card 4: Universal Converter -->
+            <!-- Card 5: Universal Converter -->
             <div class="card tool-item" data-category="tools">
                 <div class="card-header">
                     <div class="card-icon">
@@ -555,7 +575,7 @@
                 <a href="converter.html" class="btn-soft">Buka Tools</a>
             </div>
 
-            <!-- Card 5: Image Extractor -->
+            <!-- Card 6: Image Extractor -->
             <div class="card tool-item" data-category="tools">
                 <div class="card-header">
                     <div class="card-icon">
@@ -574,53 +594,6 @@
                         otomatis.</p>
                 </div>
                 <a href="extract-img.html" class="btn-soft">Buka Tools</a>
-            </div>
-
-            <!-- Card 6: 3D Globe Viewer (Coming Soon) -->
-            <div class="card tool-item" data-category="coming-soon"
-                style="opacity: 0.7; border-style: dashed; box-shadow: none;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: var(--bg-color); color: var(--text-muted);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="2" y1="12" x2="22" y2="12" />
-                            <path
-                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                    </div>
-                    <span class="compat-badge" style="background:var(--bg-color); color:var(--text-muted);">Beta</span>
-                </div>
-                <div>
-                    <h3>3D Globe Pro <span class="version-tag">WIP</span></h3>
-                    <p>Visualisasi desain KML/KMZ dalam bentuk Globe 3D interaktif. Cek kontur terrain dan batas wilayah
-                        tanpa install aplikasi desktop.</p>
-                </div>
-                <div class="btn-outline">Coming Soon</div>
-            </div>
-
-            <!-- Card 7: Autocad Plugin (Coming Soon) -->
-            <div class="card tool-item" data-category="coming-soon"
-                style="opacity: 0.7; border-style: dashed; box-shadow: none;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: var(--bg-color); color: var(--text-muted);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <path d="M12 12v6" />
-                            <path d="m15 15-3-3-3 3" />
-                        </svg>
-                    </div>
-                    <span class="compat-badge"
-                        style="background:var(--bg-color); color:var(--text-muted);">Plugin</span>
-                </div>
-                <div>
-                    <h3>AutoCAD Plugin</h3>
-                    <p>Script otomatisasi untuk penggambaran jalur kabel, BOM generator, dan export koordinat ke DWG.
-                    </p>
-                </div>
-                <div class="btn-outline">Coming Soon</div>
             </div>
 
         </div>

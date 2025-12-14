@@ -4,12 +4,12 @@
 const appConfig = {
   appName: "SND",
   appSuffix: "App",
-  version: "3.3", // Update version
+  version: "3.4", // Versi terbaru dengan KMZ Renamer
   status: "Online",
 };
 
 // === DATA TOOLS ===
-// Urutan: 6 Tools Utama (Berwarna) -> Lainnya (Netral)
+// Urutan: Tools Utama (Berwarna) -> Lainnya (Netral)
 const toolsList = [
   {
     id: "otdr-maker",
@@ -18,6 +18,15 @@ const toolsList = [
     url: "otdr-maker.html",
     icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>`,
     bg: "#007aff", // Blue
+    enabled: true,
+  },
+  {
+    id: "kmz-renamer",
+    name: "KMZ Renamer Pro",
+    desc: "Rename Placemark & Cleaning",
+    url: "kmz-renamer.html",
+    icon: `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`,
+    bg: "#FF3B30", // Red - New Tool
     enabled: true,
   },
   {
@@ -92,12 +101,6 @@ const docsData = {
     title: "Pusat Bantuan SND App",
     content: `
             <p>Selamat datang di <strong>SND App</strong>, toolkit all-in-one untuk engineer FTTH.</p>
-            <ul>
-                <li><strong>OTDR Report Maker:</strong> Membuat laporan PDF OTDR secara manual dengan grafik realistis.</li>
-                <li><strong>ABD Maker:</strong> Membuat desain & metadata otomatis khusus Linknet.</li>
-                <li><strong>Metadata Extractor:</strong> Mengambil data dari KMZ ke Excel.</li>
-                <li><strong>Globe Pro:</strong> Melihat desain 3D & cek batas wilayah.</li>
-            </ul>
             <p>Pilih tools dari menu untuk melihat panduan spesifik.</p>
         `,
   },
@@ -107,11 +110,20 @@ const docsData = {
             <p>Tools ini digunakan untuk membuat laporan PDF OTDR secara manual tanpa software vendor.</p>
             <ol>
                 <li>Masukkan <strong>Master Key</strong> (sndapp.com) untuk mendapatkan akses harian.</li>
-                <li>Isi parameter kabel (Panjang, Wavelength, dll).</li>
-                <li>Isi informasi perangkat (Model OTDR, S/N).</li>
+                <li>Isi parameter kabel dan informasi perangkat.</li>
                 <li>Klik <strong>Generate PDF</strong> untuk mengunduh laporan resmi.</li>
-                <li>Klik <strong>Generate .SOR</strong> untuk simulasi file mentah (prank/dummy).</li>
             </ol>
+        `,
+  },
+  "kmz-renamer": {
+    title: "Panduan KMZ Renamer Pro",
+    content: `
+            <p>Tool untuk mengubah nama Placemark secara massal dan membersihkan deskripsi.</p>
+            <ul>
+                <li><strong>Pola Nama:</strong> Format nama baru. Gunakan kata kunci seperti "Tiang" atau "FAT". Sistem akan menambahkan nomor urut otomatis (Tiang-1, Tiang-2).</li>
+                <li><strong>Start Number:</strong> Angka awal untuk penomoran.</li>
+                <li><strong>Output Clean:</strong> Mode ini akan <strong>menghapus total</strong> isi deskripsi (termasuk foto) sehingga file menjadi sangat ringan dan bersih.</li>
+            </ul>
         `,
   },
   "abd-maker": {
@@ -121,14 +133,7 @@ const docsData = {
                 <li>Siapkan file <strong>.KMZ</strong> yang berisi folder POLE, FDT, FAT, dan HOME.</li>
                 <li>Isi form parameter desain (Cluster, District, dll).</li>
                 <li>Upload file KMZ.</li>
-                <li>Klik <strong>Mulai Proses</strong>. Sistem akan otomatis:
-                    <ul>
-                        <li>Menghitung jarak kabel drop.</li>
-                        <li>Melakukan snapping kabel ke tiang terdekat.</li>
-                        <li>Mengisi metadata sesuai standar Linknet.</li>
-                    </ul>
-                </li>
-                <li>Download file hasil proses.</li>
+                <li>Klik <strong>Mulai Proses</strong>. Sistem akan otomatis melakukan snapping dan metadata injection.</li>
             </ol>
         `,
   },
@@ -139,22 +144,8 @@ const docsData = {
             <ol>
                 <li>Upload file KMZ hasil survey.</li>
                 <li>Tunggu proses ekstraksi foto.</li>
-                <li>Sistem akan menyuntikkan koordinat GPS (EXIF) ke setiap foto.</li>
-                <li>Jika foto tidak ditemukan, sistem akan membuat log error .txt.</li>
                 <li>Download file ZIP hasilnya.</li>
             </ol>
-        `,
-  },
-  globe: {
-    title: "Panduan 3D Globe Pro",
-    content: `
-            <p>Visualisasi desain jaringan dalam bentuk 3D tanpa Google Earth Desktop.</p>
-            <ul>
-                <li><strong>Drag & Drop:</strong> Tarik file KMZ/KML ke layar untuk melihatnya.</li>
-                <li><strong>Search Boundary:</strong> Ketik nama desa/kecamatan untuk melihat batas wilayah admin.</li>
-                <li><strong>Base Layer:</strong> Ganti peta ke Satelit atau Jalan via sidebar.</li>
-                <li><strong>Terrain 3D:</strong> Aktifkan mode terrain untuk melihat kontur tanah (membutuhkan koneksi bagus).</li>
-            </ul>
         `,
   },
   estocsv: {
@@ -163,9 +154,8 @@ const docsData = {
             <p>Mengekstrak data ExtendedData KML menjadi tabel Excel/CSV.</p>
             <ol>
                 <li>Upload file KMZ/KML.</li>
-                <li>(Opsional) Upload template Excel jika ingin format khusus.</li>
+                <li>(Opsional) Upload template Excel.</li>
                 <li>Klik <strong>Ekstrak Data</strong>.</li>
-                <li>Sistem akan memisahkan data berdasarkan folder (POLE, FAT, HOME, dll).</li>
             </ol>
         `,
   },
@@ -176,7 +166,6 @@ const docsData = {
             <ul>
                 <li><strong>Input:</strong> KML, KMZ.</li>
                 <li><strong>Output:</strong> Excel (XLSX), CSV, GeoJSON.</li>
-                <li><strong>Fitur Tree:</strong> Pilih folder spesifik yang ingin dikonversi.</li>
             </ul>
         `,
   },
@@ -188,6 +177,7 @@ const docsData = {
 function getActivePageKey() {
   const path = window.location.pathname;
   if (path.includes("otdr")) return "otdr-maker";
+  if (path.includes("kmz-renamer")) return "kmz-renamer"; // Added
   if (path.includes("abd-maker")) return "abd-maker";
   if (path.includes("extract-img")) return "extract-img";
   if (path.includes("estocsv")) return "estocsv";
@@ -259,8 +249,8 @@ function initGlobalUI() {
             </button>
 
             <button class="icon-btn" id="themeToggle" title="Switch Theme">
-                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
             
             <button class="icon-btn tool-menu-btn" id="toolsMenuBtn" title="All Tools">
@@ -337,15 +327,13 @@ function initGlobalUI() {
   toolsList.forEach((tool, index) => {
     const isActive = window.location.pathname.includes(tool.url) ? "active" : "";
 
-    // Logic: 6 Item pertama masuk Tools Grid (Ada BG), sisanya Info Grid (Netral)
-    const isMainTool = index < 6;
+    // Logic: 7 Item pertama (termasuk KMZ Renamer) masuk Tools Grid (Ada BG), sisanya Info Grid (Netral)
+    // Ingat index dimulai dari 0
+    const isMainTool = index <= 6; // Sampai 'globe'
 
-    // BG Style: Hanya untuk main tools yang enabled
-    // Globe (index 5) kita disable manual style-nya jika enabled false
     const bgStyle = isMainTool && tool.enabled ? `background-color: ${tool.bg}; color: white;` : `background-color: var(--accent-bg); color: var(--text-color);`;
     const iconStyle = isMainTool && tool.enabled ? `color: white;` : `color: var(--text-color);`;
 
-    // Handle Disabled Link
     const href = tool.enabled ? `href="${tool.url}"` : `style="opacity:0.6; cursor:not-allowed;" title="Coming Soon"`;
     const toolName = tool.enabled ? tool.name : `${tool.name}`;
 
@@ -356,7 +344,7 @@ function initGlobalUI() {
             </div>
             <div class="mega-tool-text">
                 <span class="mega-tool-name">${toolName}</span>
-                <span class="mega-tool-desc">${tool.desc.substring(0, 20)}${tool.desc.length > 20 ? "..." : ""}</span>
+                <span class="mega-tool-desc">${tool.desc.substring(0, 18)}...</span>
             </div>
         </a>
     `;
@@ -372,11 +360,10 @@ function initGlobalUI() {
   const style = document.createElement("style");
   style.innerHTML = `
     .tools-popup.mega-menu {
-        width: 600px; /* Lebar Mega Menu Proporsional */
+        width: 600px;
         max-width: 90vw;
         left: 50%;
         transform: translateX(-50%) translateY(-10px) scale(0.95);
-        right: auto;
         padding: 1.5rem;
         display: flex;
         flex-direction: column;
@@ -498,23 +485,10 @@ function setupSearchLogic() {
       body.innerHTML = `<div class="search-placeholder"><p>Ketik sesuatu untuk mulai mencari...</p></div>`;
       return;
     }
-    body.innerHTML = `<div class="search-loading-state"><div class="spinner-search"></div><p>Sedang mencari database NASA...</p></div>`;
+    body.innerHTML = `<div class="search-loading-state"><div class="spinner-search"></div><p>Sedang mencari...</p></div>`;
     timeout = setTimeout(() => {
-      const funMessages = [
-        "Maaf fitur ini masih di develop! 😜",
-        "Hasil pencarian: ZONK 😂",
-        "Coba cari 'Jodoh' 🙈",
-        "Sistem lelah 😴",
-        "Error 404: Logic Not Found 👻",
-        "Ketik lagi dong, masih gabut nih",
-        "Fiturnya lagi OTW 🚀",
-        "Sabar, servernya lagi ngopi ☕",
-        "Mau cari apa? Diskon? Gak ada. 💸",
-        "Udah nyerah aja, mending istirahat 🛌",
-      ];
-      const randomMsg = funMessages[Math.floor(Math.random() * funMessages.length)];
-      body.innerHTML = `<div class="search-result-empty"><div style="font-size: 3rem; margin-bottom: 10px;">👾</div><h3>Ups!</h3><p>${randomMsg}</p><button class="btn-fun" onclick="document.getElementById('searchInput').value=''; document.getElementById('searchInput').focus();">Coba Lagi</button></div>`;
-    }, 1500);
+      body.innerHTML = `<div class="search-result-empty"><div style="font-size: 2rem; margin-bottom:10px;">🔍</div><p>Hasil pencarian belum tersedia di versi demo.</p></div>`;
+    }, 1000);
   });
 
   document.addEventListener("keydown", (e) => {
