@@ -201,7 +201,6 @@
             flex-direction: column;
             gap: 8px;
             background: var(--bg-color);
-            scroll-behavior: smooth;
         }
 
         .log-bubble {
@@ -218,14 +217,6 @@
 
         .log-bubble.info {
             border-left: 3px solid var(--primary-color);
-        }
-
-        .log-bubble.process {
-            border-left: 3px solid #8e44ad;
-            background: rgba(142, 68, 173, 0.05);
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            padding: 4px 12px;
         }
 
         .log-bubble.success {
@@ -259,91 +250,6 @@
             padding: 1rem;
             border-top: 1px solid var(--border-color);
             background: var(--card-bg);
-        }
-
-        /* === MODERN PROGRESS BAR === */
-        .progress-wrapper {
-            padding: 0 1.2rem 1.2rem;
-            display: none;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 8px;
-        }
-
-        .progress-status {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .progress-eta {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: var(--bg-color);
-            padding: 2px 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .progress-track-modern {
-            height: 10px;
-            background: var(--bg-color);
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .progress-fill-modern {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #0071e3, #34c759, #00c6fb);
-            background-size: 200% 100%;
-            border-radius: 6px;
-            transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-            animation: cyberFlow 2s linear infinite;
-            position: relative;
-        }
-
-        /* The "Shine" Effect */
-        .progress-fill-modern::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(90deg,
-                    rgba(255, 255, 255, 0) 0%,
-                    rgba(255, 255, 255, 0.4) 50%,
-                    rgba(255, 255, 255, 0) 100%);
-            transform: translateX(-100%);
-            animation: shine 1.5s infinite;
-        }
-
-        @keyframes cyberFlow {
-            0% {
-                background-position: 100% 0;
-            }
-
-            100% {
-                background-position: 0 0;
-            }
-        }
-
-        @keyframes shine {
-            100% {
-                transform: translateX(100%);
-            }
         }
 
         .btn-action {
@@ -593,19 +499,6 @@
                 <div style="font-size: 0.7rem; color: var(--text-muted)">LIVE</div>
             </div>
 
-            <div class="progress-wrapper" id="progressWrapper">
-                <div class="progress-header">
-                    <span class="progress-status" id="statusText">Initializing...</span>
-                    <span class="progress-eta" id="etaText">--:--</span>
-                </div>
-                <div class="progress-track-modern">
-                    <div id="progressBar" class="progress-fill-modern"></div>
-                </div>
-                <div style="text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
-                    <span id="percentText">0%</span>
-                </div>
-            </div>
-
             <div class="monitor-log-area" id="log">
                 <div style="text-align: center; color: var(--text-muted); margin-top: 50%">
                     <div style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5">📡</div>
@@ -637,13 +530,6 @@
         const downloadLink = document.getElementById("downloadLink");
         const logEl = document.getElementById("log");
         const resetBtn = document.getElementById("resetBtn");
-
-        // Progress Bar Elements
-        const progressWrapper = document.getElementById("progressWrapper");
-        const progressBar = document.getElementById("progressBar");
-        const statusText = document.getElementById("statusText");
-        const percentText = document.getElementById("percentText");
-        const etaText = document.getElementById("etaText");
 
         const geocoderProvider = document.getElementById("geocoderProvider");
         const gmapsKeyGroup = document.getElementById("gmaps-key-group");
@@ -744,8 +630,6 @@
             if (type === "l-warn") cssClass = "warn";
             if (type === "l-err") cssClass = "error";
             if (type === "l-success" || type === "success") cssClass = "success";
-            if (type === "process") cssClass = "process"; // New class for home items
-
             d.className = `log-bubble ${cssClass}`;
             d.innerHTML = `<span class="log-time">${time}</span>${m}`;
             logEl.appendChild(d);
@@ -753,14 +637,6 @@
         }
         function logHeader(m) {
             log("info", `<strong>--- ${m} ---</strong>`);
-        }
-
-        // Progress Helper
-        const updateProgress = (percent, message, eta = "") => {
-            progressBar.style.width = `${percent}%`;
-            percentText.innerText = `${percent}%`;
-            if (message) statusText.innerText = message;
-            if (eta) etaText.innerText = eta;
         }
 
         // API Helpers
@@ -889,16 +765,12 @@
 
         // MAIN LOGIC
         processBtn.addEventListener("click", async () => {
-            logHeader("Mission Start 🚀...");
+            logHeader("Memulai Misi 🚀...");
             processBtn.classList.add("processing");
             processBtn.disabled = true;
             downloadLink.style.display = "none";
 
-            // SHOW PROGRESS BAR
-            progressWrapper.style.display = "block";
-            updateProgress(1, "Warming up engines...", "--:--");
-
-            // Define summary variables
+            // DEFINISI VARIABEL PENTING DI SINI AGAR TIDAK ERROR
             let cableDropsStr = "";
             let summary = { pole: 0, fdt: 0, fat: 0, hook: 0, home: 0, h_str: 0, h_fat: 0, h_hook: 0, drops: 0 };
 
@@ -925,21 +797,15 @@
                     if (inputElements[key].tagName) data[key] = inputElements[key].value;
                 }
 
-                await sleep(50); // Pause for UI update
-                log("info", "Unlocking KMZ vault... 🔓");
-                updateProgress(5, "Unzipping the digital universe...");
-
+                log("info", "Membuka brankas KMZ... 🔓");
                 const zip = await new JSZip().loadAsync(originalKmzFile);
                 const kmlFileEntry = zip.file("doc.kml") || zip.file(/.kml$/i)[0];
-                if (!kmlFileEntry) throw new Error("No KML file found");
+                if (!kmlFileEntry) throw new Error("Tidak ada file KML");
 
                 const kmlStr = await kmlFileEntry.async("string");
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(kmlStr, "application/xml");
                 const root = doc.querySelector("Document");
-
-                updateProgress(15, "Injecting advanced metadata styles...");
-                await sleep(50);
 
                 // Inject Styles
                 Array.from(parser.parseFromString(`<root>${ALL_XML}</root>`, "application/xml").documentElement.childNodes)
@@ -949,7 +815,7 @@
                 // Find Folders
                 const findFolder = (p, n) => Array.from(p.getElementsByTagName("Folder")).find(f => f.querySelector(":scope>name")?.textContent.trim() === n);
                 const mainF = findFolder(root, "DISTRIBUSI");
-                if (!mainF) throw new Error("Missing DISTRIBUSI folder");
+                if (!mainF) throw new Error("Folder DISTRIBUSI hilang");
 
                 const fPole = findFolder(mainF, "POLE");
                 const fHook = findFolder(mainF, "HOOK");
@@ -962,9 +828,6 @@
                 // Fix QSPAN folder search - check root first, then distribution
                 let fQSpan = findFolder(root, "QSPAN");
                 if (!fQSpan && mainF) fQSpan = findFolder(mainF, "QSPAN");
-
-                updateProgress(20, "Mapping geospatial coordinates...");
-                await sleep(50);
 
                 // Get Points Helper
                 const getPts = (f) => {
@@ -1030,16 +893,18 @@
                     p.appendChild(doc.importNode(parser.parseFromString(xml.data, "application/xml").documentElement, true));
                 };
 
-                // === FEATURE: AUTO SNAP CABLE ===
-                // Helper function for snapping
+                // === FITUR BARU: AUTO SNAP CABLE ===
+                // Helper function untuk snapping
                 function snapLineToPoints(lineFeature, pointFeaturesCollection, bufferMeters = 5) {
                     const originalCoords = lineFeature.geometry.coordinates;
                     let finalCoords = [];
 
+                    // Loop setiap segmen garis (dari titik A ke titik B)
                     for (let i = 0; i < originalCoords.length - 1; i++) {
                         const startCoord = originalCoords[i];
                         const endCoord = originalCoords[i + 1];
 
+                        // 1. Proses Titik Awal Segmen (Snap ke tiang terdekat)
                         const startPt = turf.point(startCoord);
                         const nearestStart = turf.nearestPoint(startPt, pointFeaturesCollection);
                         const distStart = turf.distance(startPt, nearestStart, { units: 'meters' });
@@ -1049,7 +914,7 @@
                             const nc = nearestStart.geometry.coordinates;
                             snappedStart = [nc[0], nc[1], 0];
                         }
-
+                        // Masukkan titik awal (hanya jika belum ada di akhir array sebelumnya)
                         if (finalCoords.length === 0) {
                             finalCoords.push(snappedStart);
                         } else {
@@ -1059,45 +924,56 @@
                             }
                         }
 
+                        // 2. SCANNING: Cari QSPAN/Tiang yang "kesenggol" di tengah jalur A ke B
                         const segmentLine = turf.lineString([startCoord, endCoord]);
                         const intermediatePoints = [];
 
                         turf.featureEach(pointFeaturesCollection, (pt) => {
+                            // Hitung jarak titik ke GARIS LINTASAN
                             const distToLine = turf.pointToLineDistance(pt, segmentLine, { units: 'meters' });
 
                             if (distToLine <= bufferMeters) {
                                 const ptCoord = pt.geometry.coordinates;
+
+                                // Cek jarak ke Start & End biar nggak duplikat sama titik ujung
                                 const distToStart = turf.distance(pt, turf.point(startCoord), { units: 'meters' });
                                 const distToEnd = turf.distance(pt, turf.point(endCoord), { units: 'meters' });
 
+                                // Jika titik ini ada di tengah-tengah (bukan di ujung vertex)
                                 if (distToStart > 1 && distToEnd > 1) {
+                                    // Hitung lokasi relatif titik di garis (untuk sorting)
                                     const snappedOnLine = turf.nearestPointOnLine(segmentLine, pt);
                                     intermediatePoints.push({
                                         coord: [ptCoord[0], ptCoord[1], 0],
-                                        distFromStart: snappedOnLine.properties.location
+                                        distFromStart: snappedOnLine.properties.location // Posisi urutan dari A ke B
                                     });
                                 }
                             }
                         });
 
+                        // 3. Urutkan titik tengah berdasarkan jarak dari A ke B (biar rapi)
                         intermediatePoints.sort((a, b) => a.distFromStart - b.distFromStart);
 
+                        // 4. Masukkan titik tengah (QSPAN/Tiang sisipan)
                         intermediatePoints.forEach(p => {
                             finalCoords.push(p.coord);
                         });
                     }
 
+                    // 5. Proses Titik Paling Akhir (End dari seluruh garis)
                     const lastCoord = originalCoords[originalCoords.length - 1];
                     const lastPt = turf.point(lastCoord);
                     const nearestEnd = turf.nearestPoint(lastPt, pointFeaturesCollection);
                     const distEnd = turf.distance(lastPt, nearestEnd, { units: 'meters' });
 
                     let snappedEnd = lastCoord;
+                    log("debug", `Memproses titik akhir garis: ${lastCoord} - Jarak ke terdekat: ${distEnd} m`);
                     if (distEnd <= bufferMeters) {
                         const nc = nearestEnd.geometry.coordinates;
                         snappedEnd = [nc[0], nc[1], 0];
                     }
 
+                    // Push titik terakhir
                     const lastFinal = finalCoords[finalCoords.length - 1];
                     if (lastFinal[0] !== snappedEnd[0] || lastFinal[1] !== snappedEnd[1]) {
                         finalCoords.push(snappedEnd);
@@ -1126,34 +1002,30 @@
 
                         const lineFeat = turf.lineString(rawCoords);
 
+                        // Lakukan Snapping jika ada point terdekat
                         if (allSnappablePoints.features.length > 0) {
                             const newCoords = snapLineToPoints(lineFeat, allSnappablePoints);
+                            // Update DOM with new Z-axis (0)
                             ls.textContent = newCoords.map(c => `${c[0]},${c[1]},0`).join(' ');
                             count++;
                         }
                     });
-                    if (count > 0) log('success', `Auto-Snap ${count} lines in ${folderName} 🔗`);
+                    if (count > 0) log('success', `Auto-Snap ${count} jalur di ${folderName} 🔗`);
                 };
 
-                // Execute Snapping
-                updateProgress(30, "Aligning cables with quantum precision...");
-                await sleep(50);
-                log('info', 'Snapping cable paths... 📐');
+                // Jalankan Snapping
+                log('info', 'Merapikan jalur kabel (Snapping)... 📐');
                 processLines(fCable, "CABLE DISTRIBUTION");
-
-                updateProgress(45, "Tightening sling wires...");
-                await sleep(50);
                 processLines(fSling, "SLINGWIRE");
 
-                // === END NEW FEATURE ===
+                // === END FITUR BARU ===
 
-                // --- POLE with SMART MATCHING ---
+                // --- POLE dengan SMART MATCHING ---
+                // === LOGIKA SMART MATCHING (NEW ALGORITMA) ===
                 const cableIndex = {};
 
                 if (fCable) {
-                    updateProgress(50, "Building Cable Index Database...");
-                    await sleep(50);
-                    log("info", "Building Cable Index... 🧠");
+                    log("info", "Membangun Indeks Kabel untuk Smart Matching... 🧠");
                     const cables = Array.from(fCable.querySelectorAll(":scope > Placemark"));
                     cables.sort((a, b) => {
                         const nA = a.querySelector("name")?.textContent.trim() || "";
@@ -1166,6 +1038,7 @@
                         const coordsText = pm.querySelector("LineString > coordinates")?.textContent.trim();
 
                         if (name && coordsText) {
+                            log("info", `Mengindeks Kabel: ${name}`);
                             const points = coordsText.split(/\s+/);
                             points.forEach(pt => {
                                 const parts = pt.split(",");
@@ -1184,15 +1057,12 @@
                         }
                     });
                 }
-
                 if (fPole) {
-                    updateProgress(60, "Matching Poles to Cable Network...");
-                    await sleep(50);
-                    log("info", "Processing Poles & Smart Matching... 🏗️");
+                    log("info", "Memproses POLE & Mencocokkan Kabel (Smart Match)... 🏗️");
                     fPole.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name")?.textContent.trim() || "-";
 
-                        // --- VALIDATION ---
+                        // --- VALIDASI (Fix error toFixed) ---
                         const coordTag = p.querySelector("coordinates");
                         if (!coordTag) return;
                         const rawCoord = coordTag.textContent.trim();
@@ -1201,8 +1071,9 @@
                         const lo = parseFloat(parts[0]);
                         const la = parseFloat(parts[1]);
                         if (isNaN(lo) || isNaN(la)) return;
-                        // --- END VALIDATION ---
+                        // --- END VALIDASI ---
 
+                        // Main Logic Smart Matching
                         const key = `${la.toFixed(6)},${lo.toFixed(6)}`;
                         const detectedLine = cableIndex[key] || "";
 
@@ -1217,19 +1088,18 @@
                                 <SimpleData name="LINE">${detectedLine}</SimpleData>
                             </SchemaData></ExtendedData>`,
                         });
+                        log("info", `Pole ${n} dicocokkan dengan Kabel: ${detectedLine || "TIDAK ADA"}`);
                         summary.pole++;
                     });
                 }
 
                 // HOOK
                 if (fHook) {
-                    updateProgress(65, "Standardizing Hook Data...");
-                    await sleep(50);
-                    log("info", "Cleaning Hook data... 🪝");
+                    log("info", "Merapikan data Hook... 🪝");
                     fHook.querySelectorAll(":scope>Placemark").forEach((p) => {
                         if (!p.querySelector("Point")) return;
                         const n = p.querySelector("name")?.textContent.trim() || "-";
-                        // VALIDATION
+                        // VALIDASI KOORDINAT (Anti-Crash)
                         const coordTag = p.querySelector("coordinates");
                         if (!coordTag) return;
 
@@ -1248,15 +1118,14 @@
                             style: "#SM_HOOK",
                             data: `<ExtendedData><SchemaData schemaUrl="#S_HOOK_SSS"><SimpleData name="Clamp_Hook_ID">${n}</SimpleData><SimpleData name="Clamp_Hook_LATITUDE">${la.toFixed(6)}</SimpleData><SimpleData name="Clamp_Hook_LONGITUDE">${lo.toFixed(6)}</SimpleData></SchemaData></ExtendedData>`,
                         });
+                        log("info", `Hook ${n} telah dirapikan.`);
                         summary.hook++;
                     });
                 }
 
                 // FDT
                 if (fFDT && ptsPole.features.length) {
-                    updateProgress(70, "Locating FDT positions...");
-                    await sleep(50);
-                    log("info", "Snapping FDT to nearest poles... 📍");
+                    log("info", "Menempelkan FDT ke tiang terdekat... 📍");
                     fFDT.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
                         const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
@@ -1276,9 +1145,7 @@
 
                 // FAT
                 if (fFAT && ptsPole.features.length) {
-                    updateProgress(75, "Calibrating FAT coordinates...");
-                    await sleep(50);
-                    log("info", "Snapping FAT to nearest poles... 📍");
+                    log("info", "Menempelkan FAT ke tiang terdekat... 📍");
                     fFAT.querySelectorAll(":scope>Placemark").forEach((p) => {
                         const n = p.querySelector("name").textContent.trim();
                         const [lo, la] = p.querySelector("coordinates").textContent.trim().split(",").map(parseFloat);
@@ -1298,59 +1165,23 @@
 
                 // HOME
                 if (fHome) {
-                    logHeader("Final Phase: HOME & DROPS");
-                    updateProgress(80, "Initializing Home Processing Matrix...");
-                    await sleep(50);
-
-                    const homes = Array.from(fHome.querySelectorAll(":scope>Placemark"));
-                    const totalHomes = homes.length;
+                    logHeader("Fase Terakhir: HOME & CABLE DROP");
+                    const homes = fHome.querySelectorAll(":scope>Placemark");
                     const fdtPlacemark = fFDT ? fFDT.querySelector("Placemark > name") : null;
                     const fdtC = fdtPlacemark ? fdtPlacemark.textContent.trim() : "-";
 
-                    const funMessages = [
-                        "Mapping topology...",
-                        "Calculating drops...",
-                        "Optimizing path...",
-                        "Syncing nodes..."
-                    ];
-
-                    let startTime = Date.now();
-
-                    for (let i = 0; i < totalHomes; i++) {
-                        const p = homes[i];
+                    let i = 0;
+                    for (const p of homes) {
+                        i++;
                         summary.home++;
                         const n = p.querySelector("name")?.textContent.trim() || "NO_NAME";
-
-                        // Per-home processing log
-                        log("process", `Processing Node: ${n}`);
-
-                        // Calculate Time Remaining and Update Progress periodically
-                        if (i % 5 === 0 || i === totalHomes - 1) {
-                            const progress = 80 + Math.floor(((i + 1) / totalHomes) * 19);
-
-                            // Calculate ETR (Estimated Time Remaining)
-                            const elapsedTime = (Date.now() - startTime); // ms
-                            const rate = (i + 1) / elapsedTime; // items per ms
-                            const remainingItems = totalHomes - (i + 1);
-                            const remainingMs = remainingItems / rate;
-                            const remainingSec = Math.ceil(remainingMs / 1000);
-                            const etaString = remainingSec < 60 ? `~${remainingSec}s left` : `~${Math.ceil(remainingSec / 60)}m left`;
-
-                            const msg = funMessages[Math.floor(Math.random() * funMessages.length)];
-                            updateProgress(progress, `${msg} (${i + 1}/${totalHomes})`, etaString);
-
-                            // Small breathing room for UI
-                            await sleep(10);
-                        }
-
                         const cs = p.querySelector("coordinates")?.textContent.trim();
                         if (!cs) continue;
                         const [lo, la] = cs.split(",").map(parseFloat);
 
                         let st = { p: "JL.", n: "-" };
                         if (provider !== "none") {
-                            // Only log big batches for geocoding to avoid spam
-                            if (i % 50 === 0) log("info", `Geocoding batch ${i}... 🔎`);
+                            log("info", `Mencari alamat untuk ${n}... 🔎`);
                             let r = null;
                             if (provider === "nominatim") {
                                 await sleep(1100);
@@ -1394,8 +1225,10 @@
 
                         const cmt = hk !== "-" ? data.houseComment : "-";
 
+                        // === UPDATE FOR NEW XML STYLE (BY GEMINI) ===
+                        // Ditambahkan FIBER_NODE dan ADDRESS_POLE_2 pada loop data
                         setMeta(p, {
-                            style: "#SM_HOME",
+                            style: "#SM_HOME", // UPDATE ID
                             data: `<ExtendedData><SchemaData schemaUrl="#S_HOME_SSSSSSSSSSSSSSSSSSSSSSSSSSSS">
                                 <SimpleData name="HOMEPASS_ID">-</SimpleData>
                                 <SimpleData name="CLUSTER_NAME">${data.clusterName}</SimpleData>
@@ -1432,15 +1265,13 @@
                 }
 
                 if (summary.drops > 0) {
-                    log("success", `Generated ${summary.drops} drop cables automatically! 🧶`);
+                    log("success", `Berhasil membuat ${summary.drops} jalur kabel otomatis! 🧶`);
                     const dropFolderNode = parser.parseFromString(`<Folder><name>CABLE DROP</name>${cableDropsStr}</Folder>`, "application/xml").documentElement;
                     mainF.appendChild(doc.importNode(dropFolderNode, true));
                 }
 
                 // === CLEAN EXPORT (FIX LARGE SIZE) ===
-                updateProgress(99, "Finalizing Package...", "Almost done");
-                await sleep(500);
-                log("info", "Cleaning file structure...");
+                log("info", "Membersihkan file & Re-packing...");
                 const ser = new XMLSerializer();
                 const outZip = new JSZip(); // Create FRESH zip
                 outZip.file("doc.kml", ser.serializeToString(doc)); // Only add doc.kml
@@ -1450,15 +1281,13 @@
                 downloadLink.download = `cleaned_${originalKmzFile.name}`;
                 downloadLink.style.display = "flex";
 
-                updateProgress(100, "Mission Accomplished! 🎉", "Complete");
-                log("success", "Operation Complete! File is clean & light 🎉");
-                logHeader("Final Report");
+                log("success", "Misi Selesai! File bersih & ringan 🎉");
+                logHeader("Laporan Akhir");
                 log("info", `POLE: ${summary.pole} | FDT: ${summary.fdt} | FAT: ${summary.fat}`);
-                log("info", `HOME: ${summary.home} (Roads: ${summary.h_str}, FAT: ${summary.h_fat}, Hook: ${summary.h_hook})`);
+                log("info", `HOME: ${summary.home} (Jalan: ${summary.h_str}, FAT: ${summary.h_fat}, Hook: ${summary.h_hook})`);
                 log("success", `Total Cable Drop: ${summary.drops}`);
             } catch (e) {
-                log("l-err", "Oops! Critical Failure: " + e.message);
-                updateProgress(0, "Error Occurred ❌", "Failed");
+                log("l-err", "Ups! Ada kesalahan: " + e.message);
                 console.error(e);
             } finally {
                 processBtn.classList.remove("processing");
