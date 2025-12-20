@@ -413,17 +413,59 @@
                     style="color:var(--primary-color); font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem;">
                     1. Konfigurasi</div>
 
+                <!-- Mode Selection -->
                 <div class="input-group">
-                    <label class="input-label">Pola Nama Baru</label>
-                    <input type="text" id="namePattern" class="input-soft" placeholder="Contoh: Tiang, FAT..."
-                        value="Foto">
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">Hasil: Foto-1, Foto-2...
+                    <label class="input-label">Mode Rename</label>
+                    <div style="display:flex; flex-direction: column; gap:8px; margin-bottom:10px;">
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:0.9rem; cursor:pointer; background:var(--bg-color); padding:10px; border-radius:10px; border:1px solid var(--border-color);">
+                            <input type="radio" name="renameMode" value="sequential" checked>
+                            <span style="font-weight:600;">Sequential (Urut)</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">Foto-1,
+                                Foto-2...</span>
+                        </label>
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:0.9rem; cursor:pointer; background:var(--bg-color); padding:10px; border-radius:10px; border:1px solid var(--border-color);">
+                            <input type="radio" name="renameMode" value="smart">
+                            <span style="font-weight:600;">Smart Format (Rumah)</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">01A, 02,
+                                11B...</span>
+                        </label>
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label class="input-label">Mulai Nomor</label>
-                    <input type="number" id="startNumber" class="input-soft" value="1" min="1">
+                <!-- Config Sequential -->
+                <div id="sequentialConfig">
+                    <div class="input-group">
+                        <label class="input-label">Pola Nama Baru</label>
+                        <input type="text" id="namePattern" class="input-soft" placeholder="Contoh: Tiang, FAT..."
+                            value="Foto">
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">Hasil: Foto-1, Foto-2...
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Mulai Nomor</label>
+                        <input type="number" id="startNumber" class="input-soft" value="1" min="1">
+                    </div>
+                </div>
+
+                <!-- Config Smart (Info) -->
+                <div id="smartConfig" style="display:none; animation: popIn 0.3s ease;">
+                    <p
+                        style="font-size:0.85rem; color:var(--text-color); line-height:1.5; background:rgba(52, 199, 89, 0.1); padding:12px; border-radius:10px; border:1px solid rgba(52, 199, 89, 0.2); margin:0;">
+                        <strong>✨ Mode Rumah Pintar:</strong><br>
+                        Otomatis merapikan nama input yang berantakan menjadi standar. Jika ada duplikat, otomatis
+                        ditambah bintang (*).<br><br>
+
+                        <span style="display:block; margin-bottom:4px;">Contoh:</span>
+                        <span
+                            style="font-family:monospace; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px; margin-right:4px;">13</span>
+                        <span
+                            style="font-family:monospace; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px; margin-right:4px;">13*</span>
+                        <span
+                            style="font-family:monospace; background:rgba(0,0,0,0.05); padding:2px 4px; border-radius:4px;">13**</span>
+                    </p>
                 </div>
             </div>
 
@@ -529,6 +571,7 @@
                 this.originalFilename = '';
                 this.placemarks = [];
                 this.generatedBlobs = { full: null, clean: null };
+                this.mode = 'sequential'; // sequential | smart
 
                 // Fun Loading Messages
                 this.loadingMessages = [
@@ -554,7 +597,10 @@
                     btnProcess: document.getElementById('btnProcess'),
                     downloadArea: document.getElementById('downloadArea'),
                     progressBar: document.getElementById('progressBar'),
-                    progressText: document.getElementById('progressText')
+                    progressText: document.getElementById('progressText'),
+                    modeRadios: document.getElementsByName('renameMode'),
+                    seqConfig: document.getElementById('sequentialConfig'),
+                    smartConfig: document.getElementById('smartConfig')
                 };
 
                 this.initEvents();
@@ -572,6 +618,21 @@
 
                 this.ui.fileInput.addEventListener('change', e => {
                     if (e.target.files.length) this.loadFile(e.target.files[0]);
+                });
+
+                // Mode Switching
+                this.ui.modeRadios.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.mode = e.target.value;
+                        if (this.mode === 'smart') {
+                            this.ui.seqConfig.style.display = 'none';
+                            this.ui.smartConfig.style.display = 'block';
+                        } else {
+                            this.ui.seqConfig.style.display = 'block';
+                            this.ui.smartConfig.style.display = 'none';
+                        }
+                        this.renderPreview();
+                    });
                 });
 
                 this.ui.namePattern.addEventListener('input', () => this.renderPreview());
@@ -593,10 +654,49 @@
                 this.ui.progressBar.style.width = `${percent}%`;
                 if (text) this.ui.progressText.innerText = text;
                 else if (percent < 100) {
-                    // Random funny message
                     const msg = this.loadingMessages[Math.floor(Math.random() * this.loadingMessages.length)];
                     this.ui.progressText.innerText = msg;
                 }
+            }
+
+            // === CORE: SMART FORMATTING LOGIC ===
+            formatHouseName(originalName) {
+                if (!originalName) return "00";
+
+                // 1. Clean up: Remove specific keywords but keep Alphanumeric
+                // Remove "No", "No.", "Rumah", "Blok", special chars (except space)
+                let clean = originalName
+                    .replace(/[^a-zA-Z0-9\s]/g, ' ') // Ganti simbol dengan spasi
+                    .trim();
+
+                // 2. Extract Number (First Sequence of digits)
+                const numberMatch = clean.match(/(\d+)/);
+                if (!numberMatch) {
+                    // Fallback if no number: just return cleaned uppercased
+                    return clean.replace(/\s+/g, '').toUpperCase();
+                }
+
+                const numberStr = numberMatch[0];
+                const numberInt = parseInt(numberStr);
+                const paddedNumber = numberInt < 10 ? `0${numberInt}` : `${numberInt}`;
+
+                // 3. Extract Suffix Letter
+                // Remove the found number from the string to search for letters
+                // Also remove common prefixes like "No", "Rumah"
+                let remaining = clean
+                    .replace(numberStr, '') // Hapus angkanya
+                    .replace(/\b(no|nomor|nomer|rumah|block|blok)\b/gi, '') // Hapus kata sampah
+                    .replace(/\s+/g, '') // Hapus spasi
+                    .toUpperCase();
+
+                // Ambil huruf pertama yang valid (A-Z)
+                const letterMatch = remaining.match(/[A-Z]/);
+                const suffix = letterMatch ? letterMatch[0] : '';
+
+                // Case: Input "b1" -> clean "b1" -> num "1" -> rem "b" -> suffix "B" -> Result "01B"
+                // Case: Input "1b" -> clean "1b" -> num "1" -> rem "b" -> suffix "B" -> Result "01B"
+
+                return `${paddedNumber}${suffix}`;
             }
 
             async loadFile(file) {
@@ -655,17 +755,41 @@
 
             renderPreview() {
                 if (!this.placemarks.length) return;
+
+                // Logic Switching
                 const pattern = this.ui.namePattern.value || "Item";
                 const startNum = parseInt(this.ui.startNumber.value) || 1;
 
                 let html = '';
                 const limit = Math.min(this.placemarks.length, 100);
 
+                // Duplicate tracker for Smart Mode
+                const nameTracker = {};
+
                 for (let i = 0; i < limit; i++) {
-                    const newName = `${pattern}-${startNum + i}`;
+                    const original = this.placemarks[i].oldName;
+                    let newName = '';
+
+                    if (this.mode === 'sequential') {
+                        newName = `${pattern}-${startNum + i}`;
+                    } else {
+                        const baseName = this.formatHouseName(original);
+
+                        // Check Duplicates for Preview
+                        if (nameTracker[baseName] !== undefined) {
+                            nameTracker[baseName]++;
+                            // Add asterisks equal to count
+                            const stars = "*".repeat(nameTracker[baseName]);
+                            newName = `${baseName}${stars}`;
+                        } else {
+                            nameTracker[baseName] = 0;
+                            newName = baseName;
+                        }
+                    }
+
                     html += `<tr>
                         <td style="color:var(--text-muted);">${i + 1}</td>
-                        <td style="color:var(--text-muted);">${this.placemarks[i].oldName}</td>
+                        <td style="color:var(--text-muted);">${original}</td>
                         <td><span class="badge-new">${newName}</span></td>
                     </tr>`;
                 }
@@ -677,10 +801,8 @@
 
             async processFiles() {
                 this.ui.btnProcess.disabled = true;
-                const pattern = this.ui.namePattern.value || "Item";
-                const startNum = parseInt(this.ui.startNumber.value) || 1;
 
-                this.log(`Memulai proses rename... 🚀`);
+                this.log(`Memulai proses rename (${this.mode === 'smart' ? 'Smart Format' : 'Sequential'})... 🚀`);
 
                 // Fun Simulation
                 let p = 0;
@@ -695,11 +817,11 @@
                     await new Promise(r => setTimeout(r, 1000));
 
                     this.log("Membuat versi Full (Rename + Foto)... 📸");
-                    const fullKml = this.modifyKml(pattern, startNum, false);
+                    const fullKml = this.modifyKml(false);
                     this.generatedBlobs.full = await this.packageFile(fullKml, true);
 
                     this.log("Membuat versi Clean (Rename + Hapus Deskripsi)... 🧹");
-                    const cleanKml = this.modifyKml(pattern, startNum, true);
+                    const cleanKml = this.modifyKml(true);
                     this.generatedBlobs.clean = await this.packageFile(cleanKml, false);
 
                     clearInterval(interval);
@@ -716,14 +838,39 @@
                 }
             }
 
-            modifyKml(pattern, startNum, isCleanMode) {
+            modifyKml(isCleanMode) {
+                const pattern = this.ui.namePattern.value || "Item";
+                const startNum = parseInt(this.ui.startNumber.value) || 1;
+
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(this.kmlContent, "text/xml");
                 const placemarks = xmlDoc.querySelectorAll("Placemark");
 
+                // Duplicate Tracker for Actual Processing
+                const nameTracker = {};
+
                 placemarks.forEach((pm, index) => {
-                    const newName = `${pattern}-${startNum + index}`;
+                    // Logic Name Generation
+                    let newName = '';
                     let nameNode = pm.querySelector("name");
+                    const oldName = nameNode ? nameNode.textContent : '';
+
+                    if (this.mode === 'sequential') {
+                        newName = `${pattern}-${startNum + index}`;
+                    } else {
+                        const baseName = this.formatHouseName(oldName);
+
+                        // Check Duplicates
+                        if (nameTracker[baseName] !== undefined) {
+                            nameTracker[baseName]++;
+                            const stars = "*".repeat(nameTracker[baseName]);
+                            newName = `${baseName}${stars}`;
+                        } else {
+                            nameTracker[baseName] = 0;
+                            newName = baseName;
+                        }
+                    }
+
                     if (!nameNode) {
                         nameNode = xmlDoc.createElement("name");
                         pm.prepend(nameNode);
