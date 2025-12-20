@@ -8,6 +8,26 @@ const appConfig = {
   status: "Online",
 };
 
+// === VERCEL ANALYTICS INTEGRATION ===
+// Memanggil library Vercel Analytics tanpa npm install
+// Menggunakan Dynamic Import agar tidak memberatkan loading awal
+(async () => {
+  try {
+    // Cek apakah sedang berjalan di production (Vercel) atau localhost
+    // Kita pakai CDN esm.sh yang merupakan mirror dari npm registry
+    const {inject} = await import("https://esm.sh/@vercel/analytics");
+
+    inject({
+      mode: "auto", // Otomatis deteksi production/development
+      debug: true, // Ubah true jika ingin melihat log di console browser
+    });
+
+    console.log("📊 Vercel Analytics: Online");
+  } catch (err) {
+    console.warn("⚠️ Vercel Analytics gagal dimuat (Mungkin offline/blocker):", err);
+  }
+})();
+
 // === DATA TOOLS ===
 // Urutan: Tools Utama (Berwarna) -> Lainnya (Netral)
 const toolsList = [
